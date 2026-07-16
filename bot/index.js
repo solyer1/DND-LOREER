@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits, Partials, Events } = require("discord.js");
+const { Client, GatewayIntentBits, Partials, Events, ChannelType } = require("discord.js");
 const { PrismaClient } = require("@prisma/client");
 const { GoogleGenAI } = require("@google/genai");
 
@@ -104,67 +104,132 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 // Event: Message received
+async function processChannelForLore(targetChannel, limitDate) {
+  let last_id = undefined;
+  let totalSaved = 0;
+  let totalProcessed = 0;
+  let reachedLimit = false;
+
+  while (true) {
+    const options = { limit: 100 };
+    if (last_id) {
+        options.before = last_id;
+    }
+
+    const messages = await targetChannel.messages.fetch(options);
+    if (messages.size === 0) break;
+
+    for (const [id, oldMsg] of messages) {
+      if (limitDate && oldMsg.createdAt < limitDate) {
+        reachedLimit = true;
+        break;
+      }
+      
+      totalProcessed++;
+      if (oldMsg.author.bot || !oldMsg.content) continue;
+
+      const exists = await prisma.loreEntry.findUnique({
+        where: { messageId: oldMsg.id }
+      });
+      
+      if (!exists) {
+         const result = await isMessageLore(oldMsg.content);
+         if (result.isLore) {
+           await prisma.loreEntry.create({
+             data: {
+               title: oldMsg.content.split("\n")[0].substring(0, 50) + "...",
+               content: oldMsg.content,
+               author: oldMsg.author.username,
+               channelId: oldMsg.channelId,
+               channelName: targetChannel.name || "Unknown Thread",
+               messageId: oldMsg.id,
+               tags: result.tags,
+               createdAt: oldMsg.createdAt,
+             }
+           });
+           totalSaved++;
+         }
+      }
+    }
+    
+    last_id = messages.last().id;
+    if (reachedLimit) break;
+    
+    // Safety break to not hit rate limits too hard
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+  
+  return { totalProcessed, totalSaved };
+}
+
+// Event: Message received
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
 
+  if (message.content === "!lorehelp") {
+    const helpText = `**📖 D&D Lore Bot Commands**
+- **Automatic Lore**: Just talk normally! The bot will evaluate every message sent and automatically save anything it considers lore.
+- \`!fetcholdlore [channel] [YYYY-MM-DD]\`: Manually syncs past messages. (Admin only)
+  - Example: \`!fetcholdlore\` (Syncs current channel)
+  - Example: \`!fetcholdlore <#123456789>\` (Syncs a specific channel/forum)
+  - Example: \`!fetcholdlore 2024-01-01\` (Syncs current channel back to Jan 1st, 2024)
+- \`!lorehelp\`: Shows this message.`;
+    return message.reply(helpText);
+  }
+
   // Command to process old messages in the current channel
-  if (message.content === "!fetcholdlore") {
+  if (message.content.startsWith("!fetcholdlore")) {
     if (!message.member?.permissions.has("Administrator")) {
       return message.reply("You need Administrator permissions to use this command.");
     }
     
-    await message.reply("Fetching old messages in this channel... This might take a while.");
+    const args = message.content.split(" ").slice(1);
+    let targetChannel = message.channel;
+    let limitDate = null;
+    
+    // Parse arguments
+    for (const arg of args) {
+      if (arg.startsWith("<#") && arg.endsWith(">")) {
+        const channelId = arg.slice(2, -1);
+        try {
+          const fetchedChannel = await client.channels.fetch(channelId);
+          if (fetchedChannel) targetChannel = fetchedChannel;
+        } catch (e) {
+          return message.reply("Could not find that channel.");
+        }
+      } else if (arg.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        limitDate = new Date(arg);
+        if (isNaN(limitDate.getTime())) {
+          return message.reply("Invalid date format. Use YYYY-MM-DD.");
+        }
+      }
+    }
+    
+    const limitStr = limitDate ? ` back to ${limitDate.toDateString()}` : "";
+    await message.reply(`Fetching old messages in ${targetChannel.toString()}${limitStr}... This might take a while.`);
     
     try {
-      let last_id = undefined;
       let totalSaved = 0;
       let totalProcessed = 0;
-
-      while (true) {
-        const options = { limit: 100 };
-        if (last_id) {
-            options.before = last_id;
-        }
-
-        const messages = await message.channel.messages.fetch(options);
-        if (messages.size === 0) break;
-
-        for (const [id, oldMsg] of messages) {
-          totalProcessed++;
-          if (oldMsg.author.bot || !oldMsg.content) continue;
-
-          // Check if already in DB
-          const exists = await prisma.loreEntry.findUnique({
-            where: { messageId: oldMsg.id }
-          });
-          
-          if (!exists) {
-             const result = await isMessageLore(oldMsg.content);
-             if (result.isLore) {
-               await prisma.loreEntry.create({
-                 data: {
-                   title: oldMsg.content.split("\n")[0].substring(0, 50) + "...", // Use first line as title
-                   content: oldMsg.content,
-                   author: oldMsg.author.username,
-                   channelId: oldMsg.channelId,
-                   channelName: oldMsg.channel.name || "Unknown Thread",
-                   messageId: oldMsg.id,
-                   tags: result.tags,
-                   createdAt: oldMsg.createdAt,
-                 }
-               });
-               totalSaved++;
-             }
-          }
-        }
+      
+      if (targetChannel.type === ChannelType.GuildForum) {
+        const activeThreads = await targetChannel.threads.fetchActive();
+        const archivedThreads = await targetChannel.threads.fetchArchived();
+        const threads = [...activeThreads.threads.values(), ...archivedThreads.threads.values()];
         
-        last_id = messages.last().id;
-        
-        // Safety break to not hit rate limits too hard
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await message.channel.send(`Found ${threads.length} threads in ${targetChannel.toString()}. Processing...`);
+        for (const thread of threads) {
+          const stats = await processChannelForLore(thread, limitDate);
+          totalProcessed += stats.totalProcessed;
+          totalSaved += stats.totalSaved;
+        }
+      } else {
+        const stats = await processChannelForLore(targetChannel, limitDate);
+        totalProcessed += stats.totalProcessed;
+        totalSaved += stats.totalSaved;
       }
       
-      message.channel.send(`Finished! Processed ${totalProcessed} messages. Saved ${totalSaved} new lore entries.`);
+      message.channel.send(`✅ Finished syncing ${targetChannel.toString()}! Processed ${totalProcessed} messages. Saved ${totalSaved} new lore entries.`);
     } catch (error) {
       console.error(error);
       message.channel.send("An error occurred while fetching old lore.");
@@ -188,7 +253,6 @@ client.on(Events.MessageCreate, async (message) => {
           tags: result.tags,
         }
       });
-      // Optionally add a reaction to let the users know it was saved
       await message.react("📖");
     } catch (err) {
       console.error("Error saving lore:", err);
