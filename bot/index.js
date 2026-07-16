@@ -169,7 +169,7 @@ client.on(Events.MessageCreate, async (message) => {
   if (message.content === "!lorehelp") {
     const helpText = `**📖 D&D Lore Bot Commands**
 - **Automatic Lore**: Just talk normally! The bot will evaluate every message sent and automatically save anything it considers lore.
-- \`!fetcholdlore [channel] [YYYY-MM-DD]\`: Manually syncs past messages. (Admin only)
+- \`!fetcholdlore [channel] [YYYY-MM-DD]\`: Manually syncs past messages.
   - Example: \`!fetcholdlore\` (Syncs current channel)
   - Example: \`!fetcholdlore <#123456789>\` (Syncs a specific channel/forum)
   - Example: \`!fetcholdlore 2024-01-01\` (Syncs current channel back to Jan 1st, 2024)
@@ -179,9 +179,6 @@ client.on(Events.MessageCreate, async (message) => {
 
   // Command to process old messages in the current channel
   if (message.content.startsWith("!fetcholdlore")) {
-    if (!message.member?.permissions.has("Administrator")) {
-      return message.reply("You need Administrator permissions to use this command.");
-    }
     
     const args = message.content.split(" ").slice(1);
     let targetChannel = message.channel;
