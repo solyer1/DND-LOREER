@@ -3,14 +3,14 @@ const { Client, GatewayIntentBits, Partials, Events } = require("discord.js");
 const { PrismaClient } = require("@prisma/client");
 const { GoogleGenAI } = require("@google/genai");
 
-const { PrismaLibSQL } = require("@prisma/adapter-libsql");
+const { PrismaLibSql } = require("@prisma/adapter-libsql");
 const { createClient } = require("@libsql/client");
 
 const libsql = createClient({
   url: process.env.DATABASE_URL || "file:./prisma/dev.db",
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
-const adapter = new PrismaLibSQL(libsql);
+const adapter = new PrismaLibSql(libsql);
 const prisma = new PrismaClient({ adapter });
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
