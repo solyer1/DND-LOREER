@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         model: 'gemini-2.5-flash',
         contents: prompt,
       });
-      responseText = response.text;
+      responseText = response.text || "";
     }
 
     return NextResponse.json({ success: true, message: responseText });
