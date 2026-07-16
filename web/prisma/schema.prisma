@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model LoreEntry {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  author      String
+  channelId   String?
+  channelName String?
+  messageId   String?  @unique
+  tags        String?
+  createdAt   DateTime @default(now())
+}
