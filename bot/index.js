@@ -4,13 +4,11 @@ const { PrismaClient } = require("@prisma/client");
 const { GoogleGenAI } = require("@google/genai");
 
 const { PrismaLibSql } = require("@prisma/adapter-libsql");
-const { createClient } = require("@libsql/client");
 
-const libsql = createClient({
+const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL || "file:./prisma/dev.db",
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
-const adapter = new PrismaLibSql(libsql);
 const prisma = new PrismaClient({ adapter });
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
