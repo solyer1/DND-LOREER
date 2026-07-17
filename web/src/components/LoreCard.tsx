@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 export default function LoreCard({ entry }: { entry: any }) {
   const router = useRouter();
@@ -65,8 +68,9 @@ export default function LoreCard({ entry }: { entry: any }) {
         <textarea 
           value={content} 
           onChange={(e) => setContent(e.target.value)} 
-          className="bg-neutral-950/50 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-300 min-h-[150px] focus:outline-none focus:border-amber-500"
+          className="bg-neutral-950/50 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-300 min-h-[300px] focus:outline-none focus:border-amber-500 font-mono text-sm"
           placeholder="Content"
+          rows={15}
         />
         <input 
           type="text" 
@@ -122,8 +126,8 @@ export default function LoreCard({ entry }: { entry: any }) {
         {entry.title}
       </h2>
       
-      <div className="prose prose-invert prose-amber max-w-none text-neutral-300 leading-relaxed mb-6 whitespace-pre-wrap">
-        {entry.content}
+      <div className="prose prose-invert prose-amber max-w-none text-neutral-300 leading-relaxed mb-6">
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{entry.content}</ReactMarkdown>
       </div>
 
       {entry.imageUrl && (

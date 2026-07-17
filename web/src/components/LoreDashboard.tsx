@@ -111,9 +111,11 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
           <p className="text-sm mt-2">Try adjusting your search or selecting a different tab.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="columns-1 md:columns-2 gap-8 space-y-8">
           {filteredEntries.map((entry: any) => (
-            <LoreCard key={entry.id} entry={entry} />
+            <div key={entry.id} className="break-inside-avoid">
+              <LoreCard entry={entry} />
+            </div>
           ))}
         </div>
       )}
