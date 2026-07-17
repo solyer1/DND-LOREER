@@ -30,7 +30,7 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
     const requested = ["Lore", "Terminology"];
     const merged = Array.from(new Set([...requested, ...sortedTags]));
     
-    return ["All", ...merged.slice(0, 5)]; // Show top 5 tags as tabs + "All"
+    return ["All", ...merged]; // Show all tags as tabs
   }, [initialEntries]);
 
   // Filter entries

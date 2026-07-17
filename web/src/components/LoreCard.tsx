@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
+import TextareaAutosize from "react-textarea-autosize";
 
 export default function LoreCard({ entry }: { entry: any }) {
   const router = useRouter();
@@ -65,12 +66,12 @@ export default function LoreCard({ entry }: { entry: any }) {
           className="bg-neutral-950/50 border border-neutral-800 rounded-lg px-4 py-2 text-xl font-serif text-amber-50 focus:outline-none focus:border-amber-500"
           placeholder="Title"
         />
-        <textarea 
+        <TextareaAutosize 
           value={content} 
           onChange={(e) => setContent(e.target.value)} 
-          className="bg-neutral-950/50 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-300 min-h-[300px] focus:outline-none focus:border-amber-500 font-mono text-sm"
+          className="bg-neutral-950/50 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-300 min-h-[300px] focus:outline-none focus:border-amber-500 font-mono text-sm resize-none"
           placeholder="Content"
-          rows={15}
+          minRows={15}
         />
         <input 
           type="text" 
@@ -116,7 +117,7 @@ export default function LoreCard({ entry }: { entry: any }) {
           {entry.channelName}
         </span>
         <time className="text-xs text-neutral-500 font-mono">
-          {new Date(entry.createdAt).toLocaleDateString(undefined, { 
+          {new Date(entry.createdAt).toLocaleDateString('en-US', { 
             year: 'numeric', month: 'long', day: 'numeric' 
           })}
         </time>
