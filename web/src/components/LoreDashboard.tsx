@@ -79,7 +79,7 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
 
       return true;
     });
-  }, [initialEntries, activeTab, searchQuery]);
+  }, [initialEntries, activeTab, activeSubTab, searchQuery]);
 
   return (
     <div className="space-y-8">
