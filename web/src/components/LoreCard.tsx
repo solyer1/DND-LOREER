@@ -7,7 +7,17 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import TextareaAutosize from "react-textarea-autosize";
 
-export default function LoreCard({ entry }: { entry: any }) {
+export default function LoreCard({ 
+  entry, 
+  onClick, 
+  isModal = false,
+  onClose
+}: { 
+  entry: any; 
+  onClick?: () => void; 
+  isModal?: boolean;
+  onClose?: () => void;
+}) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(entry.title);
@@ -25,6 +35,7 @@ export default function LoreCard({ entry }: { entry: any }) {
       const res = await fetch(`/api/lore/${entry.id}`, { method: "DELETE" });
       if (res.ok) {
         router.refresh();
+        if (onClose) onClose();
       } else {
         alert("Failed to delete.");
         setIsDeleting(false);
@@ -56,9 +67,17 @@ export default function LoreCard({ entry }: { entry: any }) {
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent triggering onClick if clicking a button or editing
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+    
+    if (onClick && !isEditing) onClick();
+  };
+
   if (isEditing) {
     return (
-      <article className="group relative p-8 rounded-3xl bg-neutral-900/80 border border-amber-500/50 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all duration-500 overflow-hidden flex flex-col gap-4">
+      <article className={`group relative p-8 rounded-3xl bg-neutral-900/95 border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all duration-500 overflow-hidden flex flex-col gap-4 ${isModal ? 'w-full' : ''}`}>
         <input 
           type="text" 
           value={title} 
@@ -100,10 +119,22 @@ export default function LoreCard({ entry }: { entry: any }) {
   }
 
   return (
-    <article className="group relative p-8 rounded-3xl bg-neutral-900/40 border border-neutral-800/60 backdrop-blur-md hover:bg-neutral-800/40 hover:border-amber-900/50 transition-all duration-500 overflow-hidden">
+    <article 
+      onClick={handleCardClick}
+      className={`group relative p-8 rounded-3xl transition-all duration-500 overflow-hidden ${
+        isModal 
+          ? "bg-neutral-900 border border-amber-900/50 shadow-[0_0_30px_rgba(245,158,11,0.1)] w-full" 
+          : "bg-neutral-900/40 border border-neutral-800/60 backdrop-blur-md hover:bg-neutral-800/60 hover:border-amber-900/50 cursor-pointer"
+      }`}
+    >
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-600/0 to-transparent group-hover:via-amber-600/50 transition-all duration-700"></div>
       
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+      <div className={`absolute top-4 right-4 transition-opacity flex gap-2 ${isModal ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        {isModal && (
+          <button onClick={onClose} className="p-2 text-neutral-400 hover:text-white bg-neutral-950/50 rounded-lg transition-colors mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        )}
         <button onClick={() => setIsEditing(true)} className="p-2 text-neutral-400 hover:text-amber-400 bg-neutral-950/50 rounded-lg transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
         </button>
@@ -127,7 +158,7 @@ export default function LoreCard({ entry }: { entry: any }) {
         {entry.title}
       </h2>
       
-      <div className="prose prose-invert prose-amber max-w-none text-neutral-300 leading-relaxed mb-6">
+      <div className={`prose prose-invert prose-amber max-w-none text-neutral-300 leading-relaxed mb-6 ${!isModal ? 'line-clamp-6' : ''}`}>
         <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{entry.content}</ReactMarkdown>
       </div>
 

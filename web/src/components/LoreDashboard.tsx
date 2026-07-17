@@ -7,6 +7,7 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All");
   const [activeSubTab, setActiveSubTab] = useState("All");
+  const [selectedEntry, setSelectedEntry] = useState<any>(null);
 
   // Reset sub-tab when main tab changes
   useEffect(() => {
@@ -155,9 +156,26 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
         <div className="columns-1 md:columns-2 gap-8 space-y-8">
           {filteredEntries.map((entry: any) => (
             <div key={entry.id} className="break-inside-avoid">
-              <LoreCard entry={entry} />
+              <LoreCard entry={entry} onClick={() => setSelectedEntry(entry)} />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal Overlay */}
+      {selectedEntry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 sm:px-12 md:px-24 pt-20">
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+            onClick={() => setSelectedEntry(null)}
+          ></div>
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl scrollbar-thin scrollbar-thumb-amber-900/50 scrollbar-track-transparent">
+            <LoreCard 
+              entry={selectedEntry} 
+              isModal={true} 
+              onClose={() => setSelectedEntry(null)} 
+            />
+          </div>
         </div>
       )}
     </div>
