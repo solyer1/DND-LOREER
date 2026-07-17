@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import TextareaAutosize from "react-textarea-autosize";
 
 export default React.memo(function LoreCard({ 
@@ -156,8 +159,8 @@ export default React.memo(function LoreCard({
         {entry.title}
       </h2>
       
-      <div className={`whitespace-pre-wrap font-mono text-[13px] text-neutral-300 leading-loose mb-6 ${!isModal ? 'line-clamp-6' : ''}`}>
-        {entry.content}
+      <div className={`prose prose-invert prose-amber max-w-none text-base text-neutral-200 leading-relaxed mb-6 prose-p:my-3 prose-headings:mt-6 prose-headings:mb-4 prose-hr:my-4 ${!isModal ? 'line-clamp-6' : ''}`}>
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{entry.content}</ReactMarkdown>
       </div>
 
       {entry.imageUrl && (
