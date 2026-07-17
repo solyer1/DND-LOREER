@@ -135,19 +135,63 @@ async function processChannelForLore(targetChannel, limitDate) {
       if (!exists) {
          const result = await isMessageLore(oldMsg.content);
          if (result.isLore) {
-           await prisma.loreEntry.create({
-             data: {
-               title: oldMsg.content.split("\n")[0].substring(0, 50) + "...",
-               content: oldMsg.content,
+           let imageUrl = null;
+           if (oldMsg.attachments.size > 0) {
+             const imageAttachment = oldMsg.attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
+             if (imageAttachment) imageUrl = imageAttachment.url;
+           }
+
+           // Check for recent entry by same author in this channel
+           const fiveMinsAgo = new Date(oldMsg.createdAt.getTime() - 5 * 60000);
+           const fiveMinsFuture = new Date(oldMsg.createdAt.getTime() + 5 * 60000);
+           
+           const recentEntry = await prisma.loreEntry.findFirst({
+             where: {
                author: oldMsg.author.username,
                channelId: oldMsg.channelId,
-               channelName: targetChannel.name || "Unknown Thread",
-               messageId: oldMsg.id,
-               tags: result.tags,
-               createdAt: oldMsg.createdAt,
-             }
+               createdAt: {
+                 gte: fiveMinsAgo,
+                 lte: fiveMinsFuture
+               }
+             },
+             orderBy: { createdAt: 'desc' }
            });
+
+           if (recentEntry) {
+             // Merge
+             let newContent;
+             if (oldMsg.createdAt > recentEntry.createdAt) {
+               newContent = recentEntry.content + "\n\n" + oldMsg.content;
+             } else {
+               newContent = oldMsg.content + "\n\n" + recentEntry.content;
+             }
+             
+             await prisma.loreEntry.update({
+               where: { id: recentEntry.id },
+               data: {
+                 content: newContent,
+                 imageUrl: imageUrl || recentEntry.imageUrl,
+                 // Simple union of tags
+                 tags: (recentEntry.tags + "," + result.tags).split(",").filter((v, i, a) => a.indexOf(v) === i && v.trim() !== "").join(",")
+               }
+             });
+           } else {
+             await prisma.loreEntry.create({
+               data: {
+                 title: oldMsg.content.split("\n")[0].substring(0, 50) + "...",
+                 content: oldMsg.content,
+                 author: oldMsg.author.username,
+                 channelId: oldMsg.channelId,
+                 channelName: targetChannel.name || "Unknown Thread",
+                 messageId: oldMsg.id,
+                 tags: result.tags,
+                 imageUrl: imageUrl,
+                 createdAt: oldMsg.createdAt,
+               }
+             });
+           }
            totalSaved++;
+           await oldMsg.react("📖").catch(() => {});
          }
       }
     }
@@ -155,7 +199,6 @@ async function processChannelForLore(targetChannel, limitDate) {
     last_id = messages.last().id;
     if (reachedLimit) break;
     
-    // Safety break to not hit rate limits too hard
     await new Promise(resolve => setTimeout(resolve, 2000));
   }
   
@@ -239,18 +282,47 @@ client.on(Events.MessageCreate, async (message) => {
   
   if (result.isLore) {
     try {
-      await prisma.loreEntry.create({
-        data: {
-          title: message.content.split("\n")[0].substring(0, 50) + "...",
-          content: message.content,
+      let imageUrl = null;
+      if (message.attachments.size > 0) {
+        const imageAttachment = message.attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
+        if (imageAttachment) imageUrl = imageAttachment.url;
+      }
+
+      const fiveMinsAgo = new Date(message.createdAt.getTime() - 5 * 60000);
+      const recentEntry = await prisma.loreEntry.findFirst({
+        where: {
           author: message.author.username,
           channelId: message.channelId,
-          channelName: message.channel.name || "Unknown Thread",
-          messageId: message.id,
-          tags: result.tags,
-        }
+          createdAt: { gte: fiveMinsAgo }
+        },
+        orderBy: { createdAt: 'desc' }
       });
-      await message.react("📖");
+
+      if (recentEntry) {
+        await prisma.loreEntry.update({
+          where: { id: recentEntry.id },
+          data: {
+            content: recentEntry.content + "\n\n" + message.content,
+            imageUrl: imageUrl || recentEntry.imageUrl,
+            tags: (recentEntry.tags + "," + result.tags).split(",").filter((v, i, a) => a.indexOf(v) === i && v.trim() !== "").join(",")
+          }
+        });
+      } else {
+        await prisma.loreEntry.create({
+          data: {
+            title: message.content.split("\n")[0].substring(0, 50) + "...",
+            content: message.content,
+            author: message.author.username,
+            channelId: message.channelId,
+            channelName: message.channel.name || "Unknown Thread",
+            messageId: message.id,
+            tags: result.tags,
+            imageUrl: imageUrl,
+            createdAt: message.createdAt,
+          }
+        });
+      }
+      await message.react("📖").catch(() => {});
     } catch (err) {
       console.error("Error saving lore:", err);
     }

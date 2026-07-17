@@ -126,6 +126,12 @@ export default function LoreCard({ entry }: { entry: any }) {
         {entry.content}
       </div>
 
+      {entry.imageUrl && (
+        <div className="mb-6 rounded-lg overflow-hidden border border-neutral-800/50">
+          <img src={entry.imageUrl} alt="Lore Attachment" className="w-full h-auto object-cover max-h-96" />
+        </div>
+      )}
+
       {tagsList.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-6">
           {tagsList.map((tag: string, i: number) => (

@@ -15,5 +15,6 @@ model LoreEntry {
   channelName String?
   messageId   String?  @unique
   tags        String?
+  imageUrl    String?
   createdAt   DateTime @default(now())
 }
