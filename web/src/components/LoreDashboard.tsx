@@ -1,17 +1,50 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import LoreCard from "./LoreCard";
 
 export default function LoreDashboard({ initialEntries }: { initialEntries: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All");
+  const [activeSubTab, setActiveSubTab] = useState("All");
+
+  // Reset sub-tab when main tab changes
+  useEffect(() => {
+    setActiveSubTab("All");
+  }, [activeTab]);
 
   // The 10 predefined Main Categories + All
   const topTabs = [
     "All", "Story", "Character", "Location", "History", 
     "Item", "Faction", "Magic", "Terminology", "Event", "Rule"
   ];
+
+  // Derive sub-tabs dynamically when a specific main tab is selected
+  const subTabs = useMemo(() => {
+    if (activeTab === "All") return [];
+    
+    const tagCounts: Record<string, number> = {};
+    initialEntries.forEach((entry) => {
+      const entryTagsStr = entry.tags ? entry.tags.toLowerCase() : "";
+      if (entryTagsStr.includes(activeTab.toLowerCase())) {
+        entry.tags.split(",").forEach((t: string) => {
+          const tag = t.trim();
+          const tagLower = tag.toLowerCase();
+          // Exclude the main tab itself
+          if (tagLower && tagLower !== activeTab.toLowerCase()) {
+            // Store original casing in the key, but we'll normalize when picking
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    const sortedSubTags = Object.entries(tagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => tag);
+      
+    return ["All", ...sortedSubTags];
+  }, [initialEntries, activeTab]);
 
   // Filter entries
   const filteredEntries = useMemo(() => {
@@ -20,6 +53,14 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
       if (activeTab !== "All") {
         const entryTags = entry.tags ? entry.tags.toLowerCase() : "";
         if (!entryTags.includes(activeTab.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // 1.5. Sub-Tab Filter
+      if (activeSubTab !== "All") {
+        const entryTags = entry.tags ? entry.tags.toLowerCase() : "";
+        if (!entryTags.includes(activeSubTab.toLowerCase())) {
           return false;
         }
       }
@@ -83,6 +124,25 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
             </svg>
           </div>
         </div>
+
+        {/* Sub Tabs */}
+        {subTabs.length > 1 && (
+          <div className="mt-4 pt-4 border-t border-neutral-800/50 flex flex-wrap gap-2">
+            {subTabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveSubTab(tab)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  activeSubTab === tab
+                    ? "bg-indigo-600/80 text-white shadow-[0_0_8px_rgba(79,70,229,0.4)] border border-indigo-500/50"
+                    : "bg-indigo-950/30 text-indigo-300 border border-indigo-900/50 hover:bg-indigo-900/50 hover:text-indigo-200"
+                }`}
+              >
+                {tab === "All" ? `All ${activeTab}s` : tab}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Results */}
