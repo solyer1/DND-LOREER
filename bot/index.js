@@ -246,6 +246,7 @@ client.on(Events.MessageCreate, async (message) => {
   - Example: \`!fetcholdlore 2024-01-01\` (Syncs current channel back to Jan 1st, 2024)
 - \`!cancel\`: Stop an ongoing \`!fetcholdlore\` sync.
 - \`!lorestats\`: View stats about how much lore is saved and which channels have been scanned.
+- \`!apitest\`: Ping the configured AI API (Custom or Gemini) to check if it's online and responding.
 - \`!lorehelp\`: Shows this message.`;
     return message.reply(helpText);
   }
@@ -291,6 +292,49 @@ client.on(Events.MessageCreate, async (message) => {
       console.error(e);
       return message.reply("Failed to retrieve stats.");
     }
+  }
+
+  // API Test Command
+  if (message.content === "!apitest") {
+    const aiProvider = (process.env.AI_PROVIDER || "gemini").toLowerCase();
+    await message.reply(`🔄 Testing connection to **${aiProvider.toUpperCase()}** AI API...`);
+    const start = Date.now();
+    
+    try {
+      if (aiProvider === "custom") {
+        const response = await fetch(process.env.CUSTOM_AI_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.CUSTOM_AI_KEY || ""}`
+          },
+          body: JSON.stringify({
+            model: process.env.CUSTOM_AI_MODEL || "local-model",
+            messages: [{ role: "user", content: "Ping! Say the word 'Pong'." }],
+            temperature: 0.1,
+            stream: false
+          })
+        });
+        
+        if (response.ok) {
+           const time = Date.now() - start;
+           message.channel.send(`✅ **Custom AI Endpoint is Online!**\nResponse time: ${time}ms`);
+        } else {
+           message.channel.send(`❌ **Custom AI Endpoint returned an error:** ${response.status} ${response.statusText}`);
+        }
+      } else {
+        // Test Gemini
+        await ai.models.generateContent({
+           model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+           contents: "Ping! Say the word 'Pong'."
+        });
+        const time = Date.now() - start;
+        message.channel.send(`✅ **Gemini API is Online!**\nResponse time: ${time}ms`);
+      }
+    } catch (e) {
+       message.channel.send(`❌ **API Connection Failed:**\n\`\`\`${e.message}\`\`\`\n*Make sure your tunnel/LM Studio is running and the URL in your .env is correct!*`);
+    }
+    return;
   }
 
   // Command to process old messages in the current channel
