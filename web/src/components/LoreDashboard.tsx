@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useDeferredValue } from "react";
+import { useState, useMemo, useEffect, useDeferredValue, useCallback } from "react";
 import LoreCard from "./LoreCard";
 
 export default function LoreDashboard({ initialEntries }: { initialEntries: any[] }) {
@@ -9,6 +9,10 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
   const [activeTab, setActiveTab] = useState("All");
   const [activeSubTab, setActiveSubTab] = useState("All");
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
+
+  const handleSelectEntry = useCallback((entry: any) => {
+    setSelectedEntry(entry);
+  }, []);
 
   // Reset sub-tab when main tab changes
   useEffect(() => {
@@ -151,7 +155,7 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
           {filteredEntries.map((entry: any) => (
             <div key={entry.id} className="break-inside-avoid">
-              <LoreCard entry={entry} onClick={() => setSelectedEntry(entry)} />
+              <LoreCard entry={entry} onClick={handleSelectEntry} />
             </div>
           ))}
         </div>

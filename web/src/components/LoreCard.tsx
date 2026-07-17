@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import TextareaAutosize from "react-textarea-autosize";
 
-export default function LoreCard({ 
+export default React.memo(function LoreCard({ 
   entry, 
   onClick, 
   isModal = false,
   onClose
 }: { 
   entry: any; 
-  onClick?: () => void; 
+  onClick?: (entry: any) => void; 
   isModal?: boolean;
   onClose?: () => void;
 }) {
@@ -72,7 +72,7 @@ export default function LoreCard({
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
     
-    if (onClick && !isEditing) onClick();
+    if (onClick && !isEditing) onClick(entry);
   };
 
   if (isEditing) {
@@ -121,10 +121,10 @@ export default function LoreCard({
   return (
     <article 
       onClick={handleCardClick}
-      className={`group relative p-8 rounded-3xl transition-all duration-500 overflow-hidden ${
+      className={`group relative p-8 rounded-3xl transition-[background-color,border-color,shadow,transform] duration-300 overflow-hidden ${
         isModal 
           ? "bg-neutral-900 border border-amber-900/50 shadow-[0_0_30px_rgba(245,158,11,0.1)] w-full" 
-          : "bg-neutral-900/40 border border-neutral-800/60 backdrop-blur-md hover:bg-neutral-800/60 hover:border-amber-900/50 cursor-pointer"
+          : "bg-neutral-900/40 border border-neutral-800/60 hover:bg-neutral-800/60 hover:border-amber-900/50 cursor-pointer"
       }`}
     >
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-600/0 to-transparent group-hover:via-amber-600/50 transition-all duration-700"></div>
@@ -188,4 +188,4 @@ export default function LoreCard({
       </div>
     </article>
   );
-}
+});
