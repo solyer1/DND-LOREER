@@ -30,14 +30,16 @@ Read the following message from a D&D Discord server.
 Decide if this message contains actual worldbuilding lore, story events, character backstories, or important campaign information that should be saved to a lore database. 
 If it is just casual conversation, out-of-character chat, memes, or dice rolls, set "isLore" to false.
 If it is lore, set "isLore" to true.
-If it is lore, also provide a list of up to 3 relevant tags (e.g., "Location", "NPC", "History", "Deity").
+If it is lore, you MUST assign it to exactly ONE of these 10 Main Categories: Story, Character, Location, History, Item, Faction, Magic, Terminology, Event, Rule.
+This Main Category MUST be the FIRST item in your tags array.
+You may then add up to 2 additional custom tags of your own choosing.
 
 Message: "${content}"
 
 Reply ONLY with valid JSON in this exact format:
 {
   "isLore": true,
-  "tags": ["Tag1", "Tag2"]
+  "tags": ["Location", "Sword Coast", "Tavern"]
 }`;
 
   try {

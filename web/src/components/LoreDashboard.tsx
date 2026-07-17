@@ -7,31 +7,11 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All");
 
-  // Extract top tabs from unique tags
-  const topTabs = useMemo(() => {
-    const tagCounts: Record<string, number> = {};
-    initialEntries.forEach((entry) => {
-      if (entry.tags) {
-        entry.tags.split(",").forEach((t: string) => {
-          const tag = t.trim().toLowerCase();
-          if (tag) {
-            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-          }
-        });
-      }
-    });
-
-    // Sort by frequency
-    const sortedTags = Object.entries(tagCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
-      
-    // Force specific requested tabs to exist if they don't, or prioritize them
-    const requested = ["Lore", "Terminology"];
-    const merged = Array.from(new Set([...requested, ...sortedTags]));
-    
-    return ["All", ...merged]; // Show all tags as tabs
-  }, [initialEntries]);
+  // The 10 predefined Main Categories + All
+  const topTabs = [
+    "All", "Story", "Character", "Location", "History", 
+    "Item", "Faction", "Magic", "Terminology", "Event", "Rule"
+  ];
 
   // Filter entries
   const filteredEntries = useMemo(() => {
@@ -44,13 +24,14 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
         }
       }
 
-      // 2. Search Filter
+      // 2. Search Filter (Title, Content, Author, AND Tags)
       if (searchQuery.trim() !== "") {
         const query = searchQuery.toLowerCase();
         const titleMatch = entry.title?.toLowerCase().includes(query);
         const contentMatch = entry.content?.toLowerCase().includes(query);
         const authorMatch = entry.author?.toLowerCase().includes(query);
-        if (!titleMatch && !contentMatch && !authorMatch) {
+        const tagsMatch = entry.tags?.toLowerCase().includes(query);
+        if (!titleMatch && !contentMatch && !authorMatch && !tagsMatch) {
           return false;
         }
       }
