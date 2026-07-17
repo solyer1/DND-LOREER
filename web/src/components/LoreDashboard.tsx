@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useDeferredValue } from "react";
 import LoreCard from "./LoreCard";
 
 export default function LoreDashboard({ initialEntries }: { initialEntries: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeTab, setActiveTab] = useState("All");
   const [activeSubTab, setActiveSubTab] = useState("All");
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
@@ -67,8 +68,8 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
       }
 
       // 2. Search Filter (Title, Content, Author, AND Tags)
-      if (searchQuery.trim() !== "") {
-        const query = searchQuery.toLowerCase();
+      if (deferredSearchQuery.trim() !== "") {
+        const query = deferredSearchQuery.toLowerCase();
         const titleMatch = entry.title?.toLowerCase().includes(query);
         const contentMatch = entry.content?.toLowerCase().includes(query);
         const authorMatch = entry.author?.toLowerCase().includes(query);
@@ -80,7 +81,7 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
 
       return true;
     });
-  }, [initialEntries, activeTab, activeSubTab, searchQuery]);
+  }, [initialEntries, activeTab, activeSubTab, deferredSearchQuery]);
 
   return (
     <div className="space-y-8">
@@ -147,7 +148,7 @@ export default function LoreDashboard({ initialEntries }: { initialEntries: any[
           <p className="text-sm mt-2">Try adjusting your search or selecting a different tab.</p>
         </div>
       ) : (
-        <div className="columns-1 md:columns-2 gap-8 space-y-8">
+        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
           {filteredEntries.map((entry: any) => (
             <div key={entry.id} className="break-inside-avoid">
               <LoreCard entry={entry} onClick={() => setSelectedEntry(entry)} />

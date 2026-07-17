@@ -21,6 +21,10 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
+// Global State for Syncing
+let isSyncing = false;
+let cancelSync = false;
+
 // Function to classify if a message is D&D lore
 async function isMessageLore(content) {
   if (!content || content.length < 20) return false; // Ignore very short messages
@@ -100,6 +104,22 @@ Reply ONLY with valid JSON in this exact format:
   }
 }
 
+// Timeout Wrapper for AI Processing
+async function isMessageLoreWithTimeout(content, timeoutMs = 15000) {
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("AI API request timed out")), timeoutMs)
+  );
+  try {
+    return await Promise.race([
+      isMessageLore(content),
+      timeoutPromise
+    ]);
+  } catch (error) {
+    console.error("isMessageLore timeout or error:", error.message || error);
+    return { isLore: false, tags: "" };
+  }
+}
+
 // Event: Bot is ready
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -112,7 +132,7 @@ async function processChannelForLore(targetChannel, limitDate) {
   let totalProcessed = 0;
   let reachedLimit = false;
 
-  while (true) {
+  while (!cancelSync) {
     const options = { limit: 100 };
     if (last_id) {
         options.before = last_id;
@@ -122,6 +142,8 @@ async function processChannelForLore(targetChannel, limitDate) {
     if (messages.size === 0) break;
 
     for (const [id, oldMsg] of messages) {
+      if (cancelSync) break;
+      
       if (limitDate && oldMsg.createdAt < limitDate) {
         reachedLimit = true;
         break;
@@ -135,8 +157,9 @@ async function processChannelForLore(targetChannel, limitDate) {
       });
       
       if (!exists) {
-         const result = await isMessageLore(oldMsg.content);
-         if (result.isLore) {
+         try {
+           const result = await isMessageLoreWithTimeout(oldMsg.content);
+           if (result.isLore) {
            let imageUrl = null;
            if (oldMsg.attachments.size > 0) {
              const imageAttachment = oldMsg.attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
@@ -195,6 +218,9 @@ async function processChannelForLore(targetChannel, limitDate) {
            totalSaved++;
            await oldMsg.react("📖").catch(() => {});
          }
+         } catch (err) {
+           console.error(`Error processing message ${oldMsg.id}:`, err);
+         }
       }
     }
     
@@ -218,8 +244,53 @@ client.on(Events.MessageCreate, async (message) => {
   - Example: \`!fetcholdlore\` (Syncs current channel)
   - Example: \`!fetcholdlore <#123456789>\` (Syncs a specific channel/forum)
   - Example: \`!fetcholdlore 2024-01-01\` (Syncs current channel back to Jan 1st, 2024)
+- \`!cancel\`: Stop an ongoing \`!fetcholdlore\` sync.
+- \`!lorestats\`: View stats about how much lore is saved and which channels have been scanned.
 - \`!lorehelp\`: Shows this message.`;
     return message.reply(helpText);
+  }
+
+  // Cancel Command
+  if (message.content === "!cancel") {
+    if (isSyncing) {
+      cancelSync = true;
+      return message.reply("🛑 Cancelling the current lore sync operation... please wait a moment for it to safely stop.");
+    } else {
+      return message.reply("No sync operation is currently running.");
+    }
+  }
+
+  // Stats Command
+  if (message.content === "!lorestats") {
+    try {
+      const totalLore = await prisma.loreEntry.count();
+      
+      const channelStats = await prisma.loreEntry.groupBy({
+        by: ['channelId', 'channelName'],
+        _count: { id: true },
+        _min: { createdAt: true },
+        _max: { createdAt: true }
+      });
+      
+      let statsMessage = `**📖 Lore Database Statistics**\n`;
+      statsMessage += `**Total Lore Entries:** ${totalLore}\n\n`;
+      statsMessage += `**Channel Breakdown:**\n`;
+      
+      if (channelStats.length === 0) {
+        statsMessage += "No lore has been saved yet.";
+      } else {
+        channelStats.forEach(stat => {
+           const oldest = stat._min.createdAt ? new Date(stat._min.createdAt).toLocaleDateString() : "Unknown";
+           const newest = stat._max.createdAt ? new Date(stat._max.createdAt).toLocaleDateString() : "Unknown";
+           statsMessage += `- **${stat.channelName}** (<#${stat.channelId}>): ${stat._count.id} entries (Scanned Range: ${oldest} to ${newest})\n`;
+        });
+      }
+      
+      return message.reply(statsMessage);
+    } catch (e) {
+      console.error(e);
+      return message.reply("Failed to retrieve stats.");
+    }
   }
 
   // Command to process old messages in the current channel
@@ -247,6 +318,13 @@ client.on(Events.MessageCreate, async (message) => {
       }
     }
     
+    if (isSyncing) {
+      return message.reply("⚠️ A sync operation is already running! Please wait for it to finish or use `!cancel`.");
+    }
+    
+    isSyncing = true;
+    cancelSync = false;
+
     const limitStr = limitDate ? ` back to ${limitDate.toDateString()}` : "";
     await message.reply(`Fetching old messages in ${targetChannel.toString()}${limitStr}... This might take a while.`);
     
@@ -261,6 +339,7 @@ client.on(Events.MessageCreate, async (message) => {
         
         await message.channel.send(`Found ${threads.length} threads in ${targetChannel.toString()}. Processing...`);
         for (const thread of threads) {
+          if (cancelSync) break;
           const stats = await processChannelForLore(thread, limitDate);
           totalProcessed += stats.totalProcessed;
           totalSaved += stats.totalSaved;
@@ -271,16 +350,22 @@ client.on(Events.MessageCreate, async (message) => {
         totalSaved += stats.totalSaved;
       }
       
-      message.channel.send(`✅ Finished syncing ${targetChannel.toString()}! Processed ${totalProcessed} messages. Saved ${totalSaved} new lore entries.`);
+      isSyncing = false;
+      if (cancelSync) {
+        message.channel.send(`🛑 Sync was cancelled! Processed ${totalProcessed} messages. Saved ${totalSaved} new lore entries.`);
+      } else {
+        message.channel.send(`✅ Finished syncing ${targetChannel.toString()}! Processed ${totalProcessed} messages. Saved ${totalSaved} new lore entries.`);
+      }
     } catch (error) {
       console.error(error);
+      isSyncing = false;
       message.channel.send("An error occurred while fetching old lore.");
     }
     return;
   }
 
   // Normal listener: Process every new message
-  const result = await isMessageLore(message.content);
+  const result = await isMessageLoreWithTimeout(message.content);
   
   if (result.isLore) {
     try {

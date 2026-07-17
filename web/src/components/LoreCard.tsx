@@ -164,7 +164,7 @@ export default function LoreCard({
 
       {entry.imageUrl && (
         <div className="mb-6 rounded-lg overflow-hidden border border-neutral-800/50">
-          <img src={entry.imageUrl} alt="Lore Attachment" className="w-full h-auto object-cover max-h-96" />
+          <img src={entry.imageUrl} alt="Lore Attachment" loading="lazy" className="w-full h-auto object-cover max-h-96" />
         </div>
       )}
 
