@@ -14,7 +14,7 @@ export default async function Home() {
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none mix-blend-overlay"></div>
       <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-amber-900/20 to-transparent pointer-events-none"></div>
 
-      <main className="relative max-w-5xl mx-auto px-6 py-20">
+      <main className="relative w-full max-w-[95%] xl:max-w-[1400px] mx-auto px-4 sm:px-6 py-20">
         <header className="text-center mb-16 space-y-4">
           <h1 className="text-5xl md:text-7xl font-serif tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600">
             Campaign Chronicles
