@@ -273,21 +273,33 @@ client.on(Events.MessageCreate, async (message) => {
         _max: { createdAt: true }
       });
       
-      let statsMessage = `**📖 Lore Database Statistics**\n`;
-      statsMessage += `**Total Lore Entries:** ${totalLore}\n\n`;
-      statsMessage += `**Channel Breakdown:**\n`;
+      let statsMessages = [`**📖 Lore Database Statistics**\n**Total Lore Entries:** ${totalLore}\n\n**Channel Breakdown:**\n`];
+      let currentMsgIndex = 0;
       
       if (channelStats.length === 0) {
-        statsMessage += "No lore has been saved yet.";
+        statsMessages[0] += "No lore has been saved yet.";
       } else {
         channelStats.forEach(stat => {
            const oldest = stat._min.createdAt ? new Date(stat._min.createdAt).toLocaleDateString() : "Unknown";
            const newest = stat._max.createdAt ? new Date(stat._max.createdAt).toLocaleDateString() : "Unknown";
-           statsMessage += `- **${stat.channelName}** (<#${stat.channelId}>): ${stat._count.id} entries (Scanned Range: ${oldest} to ${newest})\n`;
+           const line = `- **${stat.channelName}** (<#${stat.channelId}>): ${stat._count.id} entries (Scanned Range: ${oldest} to ${newest})\n`;
+           
+           if (statsMessages[currentMsgIndex].length + line.length > 1900) {
+             currentMsgIndex++;
+             statsMessages[currentMsgIndex] = "";
+           }
+           statsMessages[currentMsgIndex] += line;
         });
       }
       
-      return message.reply(statsMessage);
+      for (let i = 0; i < statsMessages.length; i++) {
+        if (i === 0) {
+          await message.reply(statsMessages[i]);
+        } else {
+          await message.channel.send(statsMessages[i]);
+        }
+      }
+      return;
     } catch (e) {
       console.error(e);
       return message.reply("Failed to retrieve stats.");
@@ -353,6 +365,14 @@ client.on(Events.MessageCreate, async (message) => {
           if (fetchedChannel) targetChannel = fetchedChannel;
         } catch (e) {
           return message.reply("Could not find that channel.");
+        }
+      } else if (arg.match(/^\d+$/)) {
+        // Raw Channel ID
+        try {
+          const fetchedChannel = await client.channels.fetch(arg);
+          if (fetchedChannel) targetChannel = fetchedChannel;
+        } catch (e) {
+          return message.reply("Could not find that channel ID.");
         }
       } else if (arg.match(/^\d{4}-\d{2}-\d{2}$/)) {
         limitDate = new Date(arg);
