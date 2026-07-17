@@ -160,7 +160,9 @@ export default React.memo(function LoreCard({
       </h2>
       
       <div className={`prose prose-invert prose-amber max-w-none text-base text-neutral-200 leading-relaxed mb-6 prose-p:my-3 prose-headings:mt-6 prose-headings:mb-4 prose-hr:my-4 ${!isModal ? 'line-clamp-6' : ''}`}>
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{entry.content}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+          {entry.content.replace(/\n{3,}/g, (match: string) => '\n\n' + '&nbsp;\n\n'.repeat(match.length - 2))}
+        </ReactMarkdown>
       </div>
 
       {entry.imageUrl && (
