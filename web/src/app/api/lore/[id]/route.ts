@@ -29,6 +29,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         title: body.title,
         content: body.content,
         tags: body.tags,
+        imageUrl: body.imageUrl,
       },
     });
     

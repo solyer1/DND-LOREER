@@ -24,6 +24,7 @@ export default React.memo(function LoreCard({
   const [title, setTitle] = useState(entry.title);
   const [content, setContent] = useState(entry.content);
   const [tags, setTags] = useState(entry.tags || "");
+  const [imageUrl, setImageUrl] = useState(entry.imageUrl || "");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -53,7 +54,7 @@ export default React.memo(function LoreCard({
       const res = await fetch(`/api/lore/${entry.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, tags }),
+        body: JSON.stringify({ title, content, tags, imageUrl: imageUrl.trim() || null }),
       });
       if (res.ok) {
         setIsEditing(false);
@@ -99,6 +100,13 @@ export default React.memo(function LoreCard({
           onChange={(e) => setTags(e.target.value)} 
           className="bg-neutral-950/50 border border-neutral-800 rounded-lg px-4 py-2 text-sm text-neutral-400 focus:outline-none focus:border-amber-500"
           placeholder="Tags (comma separated)"
+        />
+        <input 
+          type="text" 
+          value={imageUrl} 
+          onChange={(e) => setImageUrl(e.target.value)} 
+          className="bg-neutral-950/50 border border-neutral-800 rounded-lg px-4 py-2 text-sm text-neutral-400 focus:outline-none focus:border-amber-500"
+          placeholder="Image URLs (comma separated)"
         />
         <div className="flex justify-end gap-3 mt-2">
           <button 
@@ -166,8 +174,12 @@ export default React.memo(function LoreCard({
       </div>
 
       {entry.imageUrl && (
-        <div className="mb-6 rounded-lg overflow-hidden border border-neutral-800/50">
-          <img src={entry.imageUrl} alt="Lore Attachment" loading="lazy" className="w-full h-auto object-cover max-h-96" />
+        <div className="mb-6 flex flex-col gap-4">
+          {entry.imageUrl.split(',').map((url: string, index: number) => (
+            <div key={index} className="rounded-lg overflow-hidden border border-neutral-800/50">
+              <img src={url.trim()} alt={`Lore Attachment ${index + 1}`} loading="lazy" className="w-full h-auto object-cover max-h-96" />
+            </div>
+          ))}
         </div>
       )}
 

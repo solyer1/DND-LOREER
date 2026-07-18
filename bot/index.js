@@ -162,10 +162,10 @@ async function processChannelForLore(targetChannel, limitDate) {
          try {
            const result = await isMessageLoreWithTimeout(oldMsg.content);
            if (result.isLore) {
-           let imageUrl = null;
+           let imageUrls = [];
            if (oldMsg.attachments.size > 0) {
-             const imageAttachment = oldMsg.attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
-             if (imageAttachment) imageUrl = imageAttachment.url;
+             const imgAttachments = oldMsg.attachments.filter(a => a.contentType && a.contentType.startsWith("image/"));
+             if (imgAttachments.size > 0) imageUrls.push(...imgAttachments.map(a => a.url));
            }
 
            // Check for recent entry by same author in this channel
@@ -193,11 +193,14 @@ async function processChannelForLore(targetChannel, limitDate) {
                newContent = oldMsg.content + "\n\n" + recentEntry.content;
              }
              
+             let existingUrls = recentEntry.imageUrl ? recentEntry.imageUrl.split(",") : [];
+             let finalUrls = [...new Set([...existingUrls, ...imageUrls])].filter(Boolean).join(",");
+
              await prisma.loreEntry.update({
                where: { id: recentEntry.id },
                data: {
                  content: newContent,
-                 imageUrl: imageUrl || recentEntry.imageUrl,
+                 imageUrl: finalUrls.length > 0 ? finalUrls : null,
                  // Simple union of tags
                  tags: (recentEntry.tags + "," + result.tags).split(",").filter((v, i, a) => a.indexOf(v) === i && v.trim() !== "").join(",")
                }
@@ -212,7 +215,7 @@ async function processChannelForLore(targetChannel, limitDate) {
                  channelName: targetChannel.name || "Unknown Thread",
                  messageId: oldMsg.id,
                  tags: result.tags,
-                 imageUrl: imageUrl,
+                 imageUrl: imageUrls.length > 0 ? imageUrls.join(",") : null,
                  createdAt: oldMsg.createdAt,
                }
              });
@@ -249,6 +252,9 @@ client.on(Events.MessageCreate, async (message) => {
 - \`!cancel\`: Stop an ongoing \`!fetcholdlore\` sync.
 - \`!lorestats\`: View stats about how much lore is saved and which channels have been scanned.
 - \`!apitest\`: Ping the configured AI API (Custom or Gemini) to check if it's online and responding.
+- \`!redetectimages [channel]\`: Scans entries to see if messages nearby had images attached. Defaults to current channel, or use 'all'.
+- \`!simplifytags\`: Cleans up tags by keeping only the primary "Main Category" tag for each entry.
+- \`!fixtitles [channel]\`: Generates clean, accurate 3-5 word titles using AI. Defaults to current channel, or use 'all' for all channels.
 - \`!lorehelp\`: Shows this message.`;
     return message.reply(helpText);
   }
@@ -352,10 +358,27 @@ client.on(Events.MessageCreate, async (message) => {
   }
 
   // Redetect Images Command
-  if (message.content === "!redetectimages") {
-    await message.reply("🖼️ Starting image redetection for all lore entries... (Searching up to 5 minutes after the original message)");
+  if (message.content.startsWith("!redetectimages")) {
+    const args = message.content.split(" ").slice(1);
+    let targetChannelId = message.channelId;
+    let isAll = false;
+
+    if (args[0]) {
+      if (args[0] === "all") {
+        isAll = true;
+        targetChannelId = null;
+      } else if (args[0].startsWith("<#") && args[0].endsWith(">")) {
+        targetChannelId = args[0].slice(2, -1);
+      } else if (args[0].match(/^\d+$/)) {
+        targetChannelId = args[0];
+      }
+    }
+
+    const whereClause = isAll ? {} : { channelId: targetChannelId };
+    
+    await message.reply(`🖼️ Starting image redetection for ${isAll ? 'all channels' : `channel <#${targetChannelId}>`}... (Searching up to 5 minutes before and after the original message)`);
     try {
-      const entries = await prisma.loreEntry.findMany();
+      const entries = await prisma.loreEntry.findMany({ where: whereClause });
       let updatedCount = 0;
       
       for (const entry of entries) {
@@ -365,39 +388,41 @@ client.on(Events.MessageCreate, async (message) => {
           const channel = await client.channels.fetch(entry.channelId);
           if (!channel) continue;
           
-          // Fetch the original message and a few messages after it
-          const messages = await channel.messages.fetch({ limit: 10, after: entry.messageId });
+          // Fetch the original message and a few messages around it
+          const messages = await channel.messages.fetch({ limit: 20, around: entry.messageId });
           const originalMsg = await channel.messages.fetch(entry.messageId).catch(() => null);
           
-          let foundImageUrl = null;
+          let foundImageUrls = [];
           
           // 1. Check original message
           if (originalMsg && originalMsg.attachments.size > 0) {
-            const imgAttachment = originalMsg.attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
-            if (imgAttachment) foundImageUrl = imgAttachment.url;
+            const imgAttachments = originalMsg.attachments.filter(a => a.contentType && a.contentType.startsWith("image/"));
+            if (imgAttachments.size > 0) foundImageUrls.push(...imgAttachments.map(a => a.url));
           }
           
-          // 2. Check subsequent messages within 5 minutes by the same author
-          if (!foundImageUrl && originalMsg) {
+          // 2. Check nearby messages within 5 minutes (before or after) by the same author
+          if (originalMsg) {
+            const fiveMinsBefore = originalMsg.createdAt.getTime() - 5 * 60000;
             const fiveMinsAfter = originalMsg.createdAt.getTime() + 5 * 60000;
-            const subsequentMsgs = messages.filter(m => 
+            const nearbyMsgs = messages.filter(m => 
               m.author.username === entry.author && 
+              m.createdAt.getTime() >= fiveMinsBefore &&
               m.createdAt.getTime() <= fiveMinsAfter &&
               m.attachments.size > 0
             );
             
-            // Sort by earliest first
-            const sorted = subsequentMsgs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-            if (sorted.size > 0) {
-              const imgAttachment = sorted.first().attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
-              if (imgAttachment) foundImageUrl = imgAttachment.url;
-            }
+            nearbyMsgs.forEach(msg => {
+              const imgAttachments = msg.attachments.filter(a => a.contentType && a.contentType.startsWith("image/"));
+              if (imgAttachments.size > 0) foundImageUrls.push(...imgAttachments.map(a => a.url));
+            });
           }
           
-          if (foundImageUrl && entry.imageUrl !== foundImageUrl) {
+          const finalImageUrl = foundImageUrls.length > 0 ? [...new Set(foundImageUrls)].join(",") : null;
+          
+          if (finalImageUrl && entry.imageUrl !== finalImageUrl) {
             await prisma.loreEntry.update({
               where: { id: entry.id },
-              data: { imageUrl: foundImageUrl }
+              data: { imageUrl: finalImageUrl }
             });
             updatedCount++;
           }
@@ -445,10 +470,27 @@ client.on(Events.MessageCreate, async (message) => {
   }
   
   // Fix Titles Command
-  if (message.content === "!fixtitles") {
-    await message.reply("✨ Starting AI title generation for all existing entries... This will take a while.");
+  if (message.content.startsWith("!fixtitles")) {
+    const args = message.content.split(" ").slice(1);
+    let targetChannelId = message.channelId;
+    let isAll = false;
+
+    if (args[0]) {
+      if (args[0] === "all") {
+        isAll = true;
+        targetChannelId = null;
+      } else if (args[0].startsWith("<#") && args[0].endsWith(">")) {
+        targetChannelId = args[0].slice(2, -1);
+      } else if (args[0].match(/^\d+$/)) {
+        targetChannelId = args[0];
+      }
+    }
+
+    const whereClause = isAll ? {} : { channelId: targetChannelId };
+    
+    await message.reply(`✨ Starting AI title generation for ${isAll ? 'all channels' : `channel <#${targetChannelId}>`}... This will take a while.`);
     try {
-      const entries = await prisma.loreEntry.findMany();
+      const entries = await prisma.loreEntry.findMany({ where: whereClause });
       let updatedCount = 0;
       
       for (const entry of entries) {
@@ -602,11 +644,26 @@ Content: "${entry.content}"`;
   
   if (result.isLore) {
     try {
-      let imageUrl = null;
+      let imageUrls = [];
       if (message.attachments.size > 0) {
-        const imageAttachment = message.attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
-        if (imageAttachment) imageUrl = imageAttachment.url;
+        const imgAttachments = message.attachments.filter(a => a.contentType && a.contentType.startsWith("image/"));
+        if (imgAttachments.size > 0) imageUrls.push(...imgAttachments.map(a => a.url));
       }
+      
+      // Look back 5 minutes to see if they just sent images before typing the lore
+      try {
+        const pastMsgs = await message.channel.messages.fetch({ limit: 10, before: message.id });
+        const fiveMinsAgoMs = message.createdAt.getTime() - 5 * 60000;
+        const recentImageMsgs = pastMsgs.filter(m => 
+          m.author.id === message.author.id && 
+          m.createdAt.getTime() >= fiveMinsAgoMs && 
+          m.attachments.some(a => a.contentType && a.contentType.startsWith("image/"))
+        );
+        recentImageMsgs.forEach(msg => {
+           const imgAttachments = msg.attachments.filter(a => a.contentType && a.contentType.startsWith("image/"));
+           if (imgAttachments.size > 0) imageUrls.push(...imgAttachments.map(a => a.url));
+        });
+      } catch (e) { console.error("Error fetching past messages for image:", e); }
 
       const fiveMinsAgo = new Date(message.createdAt.getTime() - 5 * 60000);
       const recentEntry = await prisma.loreEntry.findFirst({
@@ -619,11 +676,14 @@ Content: "${entry.content}"`;
       });
 
       if (recentEntry) {
-        await prisma.loreEntry.update({
+         let existingUrls = recentEntry.imageUrl ? recentEntry.imageUrl.split(",") : [];
+         let finalUrls = [...new Set([...existingUrls, ...imageUrls])].filter(Boolean).join(",");
+         
+         await prisma.loreEntry.update({
           where: { id: recentEntry.id },
           data: {
             content: recentEntry.content + "\n\n" + message.content,
-            imageUrl: imageUrl || recentEntry.imageUrl,
+            imageUrl: finalUrls.length > 0 ? finalUrls : null,
             tags: (recentEntry.tags + "," + result.tags).split(",").filter((v, i, a) => a.indexOf(v) === i && v.trim() !== "").join(",")
           }
         });
@@ -637,7 +697,7 @@ Content: "${entry.content}"`;
             channelName: message.channel.name || "Unknown Thread",
             messageId: message.id,
             tags: result.tags,
-            imageUrl: imageUrl,
+            imageUrl: imageUrls.length > 0 ? imageUrls.join(",") : null,
             createdAt: message.createdAt,
           }
         });

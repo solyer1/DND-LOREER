@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, content, author, channelName } = body;
+    const { title, content, author, channelName, tags, imageUrl } = body;
 
     if (!title || !content || !author) {
       return NextResponse.json(
@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
         content,
         author,
         channelName: channelName || "API Submission",
+        tags: tags || null,
+        imageUrl: imageUrl || null,
       },
     });
 
