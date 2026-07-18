@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const dynamic = 'force-dynamic';
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     const id = resolvedParams.id;
@@ -15,7 +17,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 }
 
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     const id = resolvedParams.id;

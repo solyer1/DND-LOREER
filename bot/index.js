@@ -34,6 +34,7 @@ Read the following message from a D&D Discord server.
 Decide if this message contains actual worldbuilding lore, story events, character backstories, or important campaign information that should be saved to a lore database. 
 If it is just casual conversation, out-of-character chat, memes, or dice rolls, set "isLore" to false.
 If it is lore, set "isLore" to true.
+If it is lore, generate a short, accurate 3-5 word "title" summarizing the entry.
 If it is lore, you MUST assign it to exactly ONE of these 10 Main Categories: Story, Character, Location, History, Item, Faction, Magic, Terminology, Event, Rule.
 This Main Category MUST be the FIRST item in your tags array.
 You may then add up to 2 additional custom tags of your own choosing.
@@ -43,6 +44,7 @@ Message: "${content}"
 Reply ONLY with valid JSON in this exact format:
 {
   "isLore": true,
+  "title": "A Short Accurate Title",
   "tags": ["Location", "Sword Coast", "Tavern"]
 }`;
 
@@ -85,7 +87,7 @@ Reply ONLY with valid JSON in this exact format:
       // Strip markdown code blocks if the AI added them
       text = text.replace(/```json\n?|\n?```/g, '');
       const parsed = JSON.parse(text);
-      return { isLore: parsed.isLore === true, tags: parsed.tags ? parsed.tags.join(",") : "" };
+      return { isLore: parsed.isLore === true, title: parsed.title || null, tags: parsed.tags ? parsed.tags.join(",") : "" };
       
     } else {
       // Default to Gemini API
@@ -96,7 +98,7 @@ Reply ONLY with valid JSON in this exact format:
       let text = response.text().trim();
       text = text.replace(/```json\n?|\n?```/g, '');
       const parsed = JSON.parse(text);
-      return { isLore: parsed.isLore === true, tags: parsed.tags ? parsed.tags.join(",") : "" };
+      return { isLore: parsed.isLore === true, title: parsed.title || null, tags: parsed.tags ? parsed.tags.join(",") : "" };
     }
   } catch (error) {
     console.error("Error calling AI API:", error);
@@ -203,7 +205,7 @@ async function processChannelForLore(targetChannel, limitDate) {
            } else {
              await prisma.loreEntry.create({
                data: {
-                 title: oldMsg.content.split("\n")[0].substring(0, 50) + "...",
+                 title: result.title || oldMsg.content.split("\n")[0].substring(0, 50) + "...",
                  content: oldMsg.content,
                  author: oldMsg.author.username,
                  channelId: oldMsg.channelId,
@@ -349,6 +351,173 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
 
+  // Redetect Images Command
+  if (message.content === "!redetectimages") {
+    await message.reply("🖼️ Starting image redetection for all lore entries... (Searching up to 5 minutes after the original message)");
+    try {
+      const entries = await prisma.loreEntry.findMany();
+      let updatedCount = 0;
+      
+      for (const entry of entries) {
+        if (!entry.channelId || !entry.messageId) continue;
+        
+        try {
+          const channel = await client.channels.fetch(entry.channelId);
+          if (!channel) continue;
+          
+          // Fetch the original message and a few messages after it
+          const messages = await channel.messages.fetch({ limit: 10, after: entry.messageId });
+          const originalMsg = await channel.messages.fetch(entry.messageId).catch(() => null);
+          
+          let foundImageUrl = null;
+          
+          // 1. Check original message
+          if (originalMsg && originalMsg.attachments.size > 0) {
+            const imgAttachment = originalMsg.attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
+            if (imgAttachment) foundImageUrl = imgAttachment.url;
+          }
+          
+          // 2. Check subsequent messages within 5 minutes by the same author
+          if (!foundImageUrl && originalMsg) {
+            const fiveMinsAfter = originalMsg.createdAt.getTime() + 5 * 60000;
+            const subsequentMsgs = messages.filter(m => 
+              m.author.username === entry.author && 
+              m.createdAt.getTime() <= fiveMinsAfter &&
+              m.attachments.size > 0
+            );
+            
+            // Sort by earliest first
+            const sorted = subsequentMsgs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+            if (sorted.size > 0) {
+              const imgAttachment = sorted.first().attachments.find(a => a.contentType && a.contentType.startsWith("image/"));
+              if (imgAttachment) foundImageUrl = imgAttachment.url;
+            }
+          }
+          
+          if (foundImageUrl && entry.imageUrl !== foundImageUrl) {
+            await prisma.loreEntry.update({
+              where: { id: entry.id },
+              data: { imageUrl: foundImageUrl }
+            });
+            updatedCount++;
+          }
+        } catch (err) {
+          // Channel or message might be deleted, skip
+        }
+      }
+      
+      await message.reply(`✅ Finished redetecting images. Updated ${updatedCount} entries with new images.`);
+    } catch (e) {
+      console.error(e);
+      await message.reply("❌ Error occurred during image redetection.");
+    }
+    return;
+  }
+
+  // Simplify Tags Command
+  if (message.content === "!simplifytags") {
+    await message.reply("🏷️ Simplifying tags... (Keeping only the Main Category tag for each entry)");
+    try {
+      const entries = await prisma.loreEntry.findMany();
+      let updatedCount = 0;
+      
+      for (const entry of entries) {
+        if (!entry.tags) continue;
+        
+        const tagsArray = entry.tags.split(",").map(t => t.trim()).filter(Boolean);
+        if (tagsArray.length > 1) {
+          // Keep only the first tag
+          const simplifiedTags = tagsArray[0];
+          await prisma.loreEntry.update({
+            where: { id: entry.id },
+            data: { tags: simplifiedTags }
+          });
+          updatedCount++;
+        }
+      }
+      
+      await message.reply(`✅ Finished simplifying tags. Cleaned up ${updatedCount} entries.`);
+    } catch (e) {
+      console.error(e);
+      await message.reply("❌ Error occurred during tag simplification.");
+    }
+    return;
+  }
+  
+  // Fix Titles Command
+  if (message.content === "!fixtitles") {
+    await message.reply("✨ Starting AI title generation for all existing entries... This will take a while.");
+    try {
+      const entries = await prisma.loreEntry.findMany();
+      let updatedCount = 0;
+      
+      for (const entry of entries) {
+        // Simple heuristic to detect bad titles: if it's longer than 50 chars, ends in ..., or contains a lot of newlines
+        // But for a full fix, we can just process all of them. To save API calls, maybe process ones that end in "..."
+        if (entry.title.endsWith("...") || entry.title.length > 45) {
+          try {
+            const prompt = `Read the following D&D lore entry and generate a short, accurate 3-5 word title for it. Reply ONLY with the title string, no quotes.
+            
+Content: "${entry.content}"`;
+
+            let newTitle = "";
+            const aiProvider = (process.env.AI_PROVIDER || "gemini").toLowerCase();
+            
+            if (aiProvider === "custom") {
+               const response = await fetch(process.env.CUSTOM_AI_ENDPOINT, {
+                 method: "POST",
+                 headers: {
+                   "Content-Type": "application/json",
+                   "Authorization": `Bearer ${process.env.CUSTOM_AI_KEY || ""}`
+                 },
+                 body: JSON.stringify({
+                   model: process.env.CUSTOM_AI_MODEL || "local-model",
+                   messages: [{ role: "user", content: prompt }],
+                   temperature: 0.1,
+                   stream: false
+                 })
+               });
+               if (response.ok) {
+                 const rawText = await response.text();
+                 let data;
+                 try { data = JSON.parse(rawText); } catch(e) {
+                   const firstData = rawText.split('\n').filter(l => l.includes('data:'))[0].replace('data: ', '');
+                   data = JSON.parse(firstData);
+                 }
+                 newTitle = (data.choices[0]?.message?.content?.trim() || data.choices[0]?.delta?.content?.trim() || "").replace(/['"]/g, '');
+               }
+            } else {
+               const response = await ai.models.generateContent({
+                   model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+                   contents: prompt,
+               });
+               newTitle = response.text().trim().replace(/['"]/g, '');
+            }
+            
+            if (newTitle && newTitle.length > 2) {
+              await prisma.loreEntry.update({
+                where: { id: entry.id },
+                data: { title: newTitle.substring(0, 100) }
+              });
+              updatedCount++;
+            }
+            
+            // Sleep slightly to respect rate limits
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } catch (err) {
+            console.error(`Error generating title for ${entry.id}:`, err);
+          }
+        }
+      }
+      
+      await message.reply(`✅ Finished fixing titles. Updated ${updatedCount} entries with AI generated titles.`);
+    } catch (e) {
+      console.error(e);
+      await message.reply("❌ Error occurred while fixing titles.");
+    }
+    return;
+  }
+
   // Command to process old messages in the current channel
   if (message.content.startsWith("!fetcholdlore")) {
     
@@ -461,7 +630,7 @@ client.on(Events.MessageCreate, async (message) => {
       } else {
         await prisma.loreEntry.create({
           data: {
-            title: message.content.split("\n")[0].substring(0, 50) + "...",
+            title: result.title || message.content.split("\n")[0].substring(0, 50) + "...",
             content: message.content,
             author: message.author.username,
             channelId: message.channelId,

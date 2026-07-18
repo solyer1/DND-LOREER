@@ -17,10 +17,10 @@ export default async function Home() {
       <main className="relative w-full max-w-[95%] xl:max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-12 md:py-20">
         <header className="text-center mb-12 md:mb-16 space-y-4">
           <h1 className="text-5xl md:text-7xl font-serif tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600">
-            Campaign Chronicles
+            King's Sanctuary
           </h1>
           <p className="text-neutral-400 text-lg max-w-2xl mx-auto">
-            Echoes from the realm, captured and preserved for eternity.
+            Sanctuary of a King where,The Knowledge of the Universe is Stored.
           </p>
           <ApiTestButton />
         </header>
