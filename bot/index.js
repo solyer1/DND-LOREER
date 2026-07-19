@@ -313,39 +313,48 @@ async function extractImages(message) {
   urls.push(...contentUrls);
   
   const uniqueUrls = [...new Set(urls)];
-  const localUrls = [];
-
-  const uploadDir = path.join(__dirname, "../web/public/uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
+  const catboxUrls = [];
 
   for (const url of uniqueUrls) {
     try {
-      if (!url.includes("discordapp.com") && !url.includes("discord.com")) {
-        localUrls.push(url);
+      // Don't re-upload if it's already a catbox link or not a discord link
+      if ((!url.includes("discordapp.com") && !url.includes("discord.com")) || url.includes("catbox.moe")) {
+        catboxUrls.push(url);
         continue;
       }
       
       const extMatch = url.match(/\.(png|jpg|jpeg|gif|webp)/i);
       const ext = extMatch ? extMatch[0] : ".jpg";
-      const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
-      const filepath = path.join(uploadDir, filename);
+      const filename = `discord_image${ext}`;
       
+      // 1. Download from Discord
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
       
       const buffer = await response.arrayBuffer();
-      fs.writeFileSync(filepath, Buffer.from(buffer));
+      const blob = new Blob([buffer]);
       
-      localUrls.push(`/uploads/${filename}`);
+      // 2. Upload to Catbox
+      const formData = new FormData();
+      formData.append("reqtype", "fileupload");
+      formData.append("fileToUpload", blob, filename);
+      
+      const uploadRes = await fetch("https://catbox.moe/user/api.php", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!uploadRes.ok) throw new Error(`Catbox Upload failed: ${uploadRes.statusText}`);
+      
+      const catboxUrl = await uploadRes.text();
+      catboxUrls.push(catboxUrl.trim());
     } catch (e) {
-      console.error("Failed to download image:", url, e.message);
-      localUrls.push(url); // Fallback to original URL
+      console.error("Failed to upload image to Catbox:", url, e.message);
+      catboxUrls.push(url); // Fallback to original URL
     }
   }
 
-  return localUrls;
+  return catboxUrls;
 }
 
 // ═══════════════════════════════════════════

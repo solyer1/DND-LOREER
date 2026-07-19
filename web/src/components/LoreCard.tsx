@@ -385,8 +385,7 @@ export default React.memo(function LoreCard({
                   src={trimmedUrl}
                   alt={`Lore Attachment ${index + 1}`}
                   loading="lazy"
-                  referrerPolicy="no-referrer"
-                  crossOrigin="anonymous"
+                  {...(trimmedUrl.startsWith("/") ? {} : { referrerPolicy: "no-referrer", crossOrigin: "anonymous" })}
                   className="w-full h-auto object-cover max-h-96"
                   onError={() => setImgErrors((prev) => new Set(prev).add(index))}
                 />
