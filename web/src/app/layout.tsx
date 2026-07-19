@@ -13,8 +13,10 @@ const cinzel = Cinzel({
 });
 
 export const metadata: Metadata = {
-  title: "D&D Lore Archive",
-  description: "Chronicles and lore from our D&D campaigns.",
+  title: "King's Sanctuary — D&D Lore Archive",
+  description:
+    "A comprehensive wiki-style archive of D&D campaign lore, combat mechanics, and world-building knowledge.",
+  keywords: ["D&D", "Dungeons and Dragons", "Lore", "Campaign", "Wiki", "Archive"],
 };
 
 export default function RootLayout({
@@ -25,8 +27,26 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
       className={`${inter.variable} ${cinzel.variable} h-full antialiased font-sans`}
+      suppressHydrationWarning
     >
+      <head suppressHydrationWarning>
+        {/* Prevent FOUC for theme */}
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const t = localStorage.getItem('theme');
+                if (t === 'light' || t === 'dark') {
+                  document.documentElement.setAttribute('data-theme', t);
+                }
+              } catch(e) {}
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

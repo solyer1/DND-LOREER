@@ -1,0 +1,860 @@
+Crit rate
+1-13D:None
+14-17D: x1.5
+18-19D: x2
+20D: x2.5
+
+Immunity:ไม่รับดาเมจจาก damage type หรือ effect ประเภทนั้นๆ
+
+Resistance:รับดาเมจ และ ผลลงครึ่งหนึ่ง (÷2)
+
+Vulnurbility:รับดาเมจและผลเป็นเท่าตัว (x2 และสามารถ Stack ได้ ถ้าการโจมตีที่โดนมี conditions ที่เป็น Vulnurbility ของตน)
+
+1 Advantage + 0 Disadvantage    Roll 2d20 เอาอันที่สูงสุด
+5 Advantages + 0 Disadvantage    Roll 2d20 เอาอันที่สูงสุด
+1 Advantage + 1 Disadvantage    Roll 1d20 ปกติ
+5 Advantages + 1 Disadvantage    Roll 1d20 ปกติ.
+Elven Accuracy Roll 3d20 เอาอันที่สูงสุด
+
+
+calculate
+
+(D20 × Damage) × Vulnurbility/Resistance +/- Special Conditions (Bleed, Status, Effect) =?
+
+
+สถานะ Update
+
+
+Stunt-ทำให้ชงักไปหนึ่งเทิร์น ไม่สามารถตอบโต้ได้ขณะที่มีสถานะนี้อยู่
+
+Freeze-เมื่อติดสถานะนี้จะทำให้ไม่สามารถทำactionsใดๆได้ แต่ต่างจากstuntที่จะไม่หายในหนึ่งเทิร์นแต่ต้องRoll save d20 ทักๆเทิร์นจนกว่สจะออกได้ (ต้องได้10 ขึ้นไป) และเมื่ออยู่ในสถานะนี้จะลดเลือด 3% ของ Hp
+
+Bleed-Bleedนั้นจะทำให้ถูกลดHp 5% จาก Hpที่มีอยู่ทุกๆเทิร์น และเพิ่มขึ้น1%ทุกๆstack Bleedนั้นยังสามารถStackและเอาไว้บวกกับRoll Damage ได้ด้วย สามารถStack Bleedได้มากสุด20stack
+
+Burn-สถานะBurnนั้นจะทำdamage10%ต่อHp ที่มีอยู่ สามารถStackได้มากสุด 20 stack เพิ่มdamage 2.5% ทุกๆ หนึ่งStack
+
+Blind-สถานะนี้จะทำให้เมื่อRoll actionsต่างๆจะลด5 roll ยกเว้นคนที่มีMind's eye หรือการสัมผัสแบบพิเศษที่จะไม่ได้มีผล
+
+Slow-สถานะนี้จะทำการลดDexterity ของคนที่โดนไป2.5 dex สามารถStackได้ มากสุด8 stack
+
+
+Flight:การบินที่เป็น status หรือ action คล้ายๆกันจะทำให้การโจมตี ระยะใกล้ นั้นไร้ผลต่อคนที่บินอยู่ แต่ถ้าเมื่อโดน hit 1 ครั้งจะทำให้ statis นี้หายไปทันทีและต้องบินขึ้นใหม่
+
+Lock (พื้นฐาน):Status นี้จะทำให้ผู้ที่โดนนั้นไม่สามารถทำ action ได้และ ac จะกลายเป็น 1 แต่การที่จะติด lock ได้ skill ที่ทำนั้นต้องมีการจ่าย cost และ stack ไม่ได้
+
+Paralyzed:เมื่อติด Paralyzed จะทำให้ติด stunt ไปด้วยการ str หรือ dx check จะพลาดทันที และการโจมตีใส่คนที่มี Paralyzed จะติด advantage การโจมตีโดนจะทำให้ได้ critical hit (18) แต่ไม่สามารถ stack ได้และอยู่ได้แค่ 1 turn
+
+Near Death:Near Death จะทำให้จาก hp ลดเหลือ 0 หลายเป็น 1 แต่จะไม่สามารถทำ action ใดๆได้เลยจนกว่าจะได้ heal แต่ถ้าอยู่เกิน 5 turn จะทำให้ตาย
+
+Charmed: คนที่ถูก charm จะไม่สามารถโจมตีผู้สะกด หรือใช้ความสามารถที่เป็นอันตรายหรือผลกระทบทางเวทมนตร์ใดๆ ต่อผู้สะกดได้ และมันยังทำให้ผู้สะกดได้ advantage ต่อการ roll ทางสังคม หรือถ้าใน battle จะได้ advantage และ เพิ่มดาเมจต่อเป้าหมาย 40%
+
+Attack and Roll Save 20
+
+New Update เกี่ยวกับ Battle ครั้งนี้คือคำถามที่น่าจะมีคนงงอยู่คือ ถ้าสัตรู roll ได้ 20 ในการโจมตี ถ้าเกิด Roll save ได้ 20 จะยังโดนมั่ย
+
+เพื่อทำให้ fair มากขึ้น ถ้าเกิดผลมัน เสมอกันให้ทำการ นำ modify ของตนที่ใช้ โจมตี หรือ save มาบวกกับผลที่ได้ ใช้กับกรณีที่เสมอกัน ถ้า save บวกได้มากกว่าก็รอดไป แต่ถ้ายังเสมอกันอีก การโจมตีก็ยังคงมีผล
+
+
+
+Frightened:สิ่งมีชีวิตที่ ติด Status นี้จะได้ disadvantage ใน Attack roll และ ability check ในขณะที่สาเหตุของ Status ยังอยู่ในระยะสายตา และนอก Battle จะทำให้ไม่สามารถ ใช้ movement เข้าใกล้สิ่งนั้นได้
+
+Poison (Updated):Posion จะสามารถลด Hp ลดลงได้ 10% ของ max hp ทุกๆเทิร์นใหญ่ ไม่สามารถ Stack ได้ และทำให้คนที่มีติด Disadvantage ใน Attack roll และ Ability check
+
+Shattered Bone: ทุกๆ 1 stack ของสถานะนี้จะทำการลด 1 ac ไม่สามารถ stack ได้เกิน 5 stack
+
+Broken Bone;ทุกๆ 2 stack ของ Broken Bone จะทำให้ติด disadvantage, -2 speed และการทำ action หรือ movement ในขณะที่มีอยู่จะต้องเสียเลือด 10% ของ hp ที่มีอยู่ ไม่สามารถ stack ได้เกิน 4 stacks
+
+Doubt:ความไม่มั่นใจ stack ได้ไม่เกิน 5 stack สถานะนี้จะบังคับให้ผู้ที่มีทำการ re roll d20  ตามจำนวน stack ที่มีและเอาผลของ stack สุดท้ายมาใช้แทน Doubt จะทำการ cancel ผลของ advantage และ disadvantage แต่ยังคงผลของ + roll ได้
+
+Despair:ติด disadvantage และ -5 universal roll และ roll save พร้อมรับดาเมจเพิ่มขึ้น 50% จากสัตรูต้องทำการ wis check ให้เท่ากับ d20 ของ skill ที่ทำให้เกิด despair หรือถ้าไม่มีให้ roll ให้ได้ 15 แต่ปกติ Despair อยู่ไม่เกิน 4 turns และ stack ไม่ได้ Despair นั้นเกิดได้จากการที่ Fear อยู่เกิน 5 turns หรือ Roll พลาดถึง 5 ครั้งติด
+
+Inspired:สถานะนี้จะไม่สามารถติดใส่ตนเองได้ ทำได้แค่จากผลของเพื่อนร่วมทีมเท่านั้นซึ่งเมื่อมีสถานะนี้การทำ action ที่มีผลประโยชต่อคนๆนั้น +4 universal roll และเมื่อทำการ synergy กันจะให้ advantage และจะไม่มีวันได้ universal roll ต่ำกว่า 10
+
+Deafened
+หูหนวกจพทำให้ ability check นั้นพลาดอย่างไม่มีเงื่อนไข ต่อการกระทำที่เกี่ยวกับการได้ยิน และมอบ Immune ต่อ Sound-Base damage/ability (ยกเว้นมันจะมาพร้อมแรงกระแทก)
+
+Grappled
+Dex ของสิ่งที่โดนสถานะนี้จะกลายเป็น 0 และจะไม่สามารถได้รับผลใดๆของ Dex ไม่แม้แต่ modify และขยับไม่ได้ และจะหยุดเมื่อ คนที่ติดสถานะได้รับ damage
+
+Invisible
+การล่องหนจะทำให้คนที่มีสถานะไม่สามารถถูกมองเห็นได้ด้วยตาเปล่าโดยไร้การช่วยเหลือของเวทย์หรือการสำผัสพิเศษ การโจมตีใส่คนที่มีจะได้ Disadvantage และการโจมตีจากคนที่มีเขาจะได้ Advantage
+
+Wet
+จะได้จากการสำผัสกับน้ำ Wet จะทำให้ดาเมจจาก Fire และ Heat ลดลงครึ่งหนึ่งและได้ Immune Burn ชั่วคราว พร้อมลบ Burn ที่มีอยู่แล้ว แต่จะทำให้โดน Freeze แรงขึ้นจาก 3% กลายเป็น 25% และเมื่อโจมตีด้วย Lightning จะทำให้ผลเป็น Aoe ต่อคนที่มี Wet สนาม
+
+Dry
+สถานะนี้จะทำให้ทุกๆการติด Burn จะเพิ่ม 1 Burn Stack และรับดาเมจ Fire เพิ่มขึ้น 50%
+
+
+Poision: Posion จะสามารถลด Max Hp ลงได้ 10%  ทักๆเทิร์นใหญ่ ไม่สามารถ Stack ได้ อยู่แค่ 3 turns
+
+Guts/ลูกฮึด:เมื่อเลือด ลดถึง 0 และมีGut อยู่ในตัวเลือดจะเดี้ยงกลับมา Custom ได้ไม่สามารถให้ เดี้ยงได้มากเกินกว่า 40% stack ได้
+
+Sure Hit:ตีผ่าน Evasion
+
+Ignore-Invisible:ตีผ่าน Invisible
+
+ทุกๆstatus สามารถอยู่ได้3 turns อย่างมาก
+
+Parry and Block
+การใช้ Parry หรือ Block นั้นปกติต้องใช้ในเทิร์นของตนก่อนที่สัตรูจะโจมตี แต่ในหลายๆเหตุการสัตรูก็ได้โจมตีก่อนที่ Player จะได้เทิร์นในการกดใช้
+
+เลยอนุญาติให้เมื่อถูกโจมตีในการทำ reaction roll save ถ้ามี skill Block หรือ Parry ที่ยังไม่ได้ใช้ สามารถกดใช้งานฉับพลันได้
+
+แต่การทำอย่างนี้จะทำให้ถ้า skill นั้นปกติไม่มี cooldown โดน Coodlown 2 turn และถ้ามี Cooldown ใน skill อยู่แล้วให้เพิ่ม cooldown +2 ในเทิร์นถัดไป
+
+และถ้าเกิดพลาด หรือ แพ้ในการ Block หรือ Parry จะโดนดาเมจเพิ่ม 15%
+
+Class Update,
+สายต่อสู้ระยะประชิด (Martial Classes),
+Barbarian,
+• Buff: ทำดาเมจกายภาพเพิ่มขึ้น 5% แต่รับดาเมจแรงขึ้น 2% 
+◦ (Scaling: เพิ่มดาเมจ 1% และรับดาเมจเพิ่ม 1% ต่อ 1 Class level)
+• Perk ประจําตัว:Adrenaline Rush – เมื่อ HP ลดลงต่ำกว่าครึ่งหนึ่ง (50%) จะได้รับการทำดาเมจเพิ่มอีก 10%
+Fighter,
+• Buff: เพิ่ม Armor Class (AC) +1 และเพิ่ม Max HP 3 หน่วย 
+◦ (Scaling: เพิ่ม Max HP 3 หน่วย และดาเมจกายภาพ 1% ต่อ 1 Class level)
+• Perk ประจําตัว:Tactical Recovery – ได้รับการฟื้นฟูเลือดเพิ่มขึ้น 10% จากการพักผ่อนทุกประเภท (Short/Long Rest)
+Monk,
+• Buff: ได้ Advantage dex check และหากไม่สวมเกราะหนา จะเพิ่มโอกาสหลบการโจมตี (Evasion) +2 d20 roll
+◦ (Scaling:ดาเมจมือเปล่า/อาวุธ Monk 1% ต่อ 1 Class level)
+• Perk ประจําตัว:Ki Flow – เมื่อโจมตีติดคริติคอล หรือปลิดชีพศัตรูได้ จะได้รับแต้มพลังกาย (Ki Point) คืนมาทันที 1 แต้ม
+สายพริ้วไหวและผู้เชี่ยวชาญ (Skilled Classes),
+Rogue,
+• Buff: เพิ่มโอกาส Critical Hit +2 d20 roll เมื่อโจมตีจากระยะประชิดหรือระยะไกล 
+◦ (Scaling: การหลบหนีได้ advantage และ เพิ่มความแรง crit 2% ต่อ 1 Class level)
+• Perk ประจําตัว:Sticky Fingers – มีโอกาส 15% ที่จะได้เงิน (Gold) หรือไอเทมเพิ่มขึ้นเมื่อเปิดหีบหรือขโมยของ
+Ranger,
+• Buff: เพิ่มความแม่นยำและการโจมตีระยะไกล +2 d20 
+◦ (Scaling: เพิ่มดาเมจระยะไกล 1% และลดโอกาสถศัตรูหลบได้ -0.5 roll save ต่อ 1 Class level)
+• Perk ประจําตัว:Survivalist – สามารถหาอาหาร น้ำ หรือสมุนไพรในป่าได้มากกว่าปกติ 2 เท่า และเดินทัพในพื้นที่ทุรกันดารได้เร็วขึ้น (มีการแก้ไข)วันเสาร์ที่ 13 มิถุนายน 2569 15:58
+:fire:
+คลิกเพื่อตอบสนอง
+:white_check_mark:
+คลิกเพื่อตอบสนอง
+:sob:
+คลิกเพื่อตอบสนอง
+เพิ่มรีแอคชั่น
+ตอบกลับ
+ส่งต่อ
+เพิ่มเติม
+[15:11]วันเสาร์ที่ 13 มิถุนายน 2569 15:11
+---
+[15:11]วันเสาร์ที่ 13 มิถุนายน 2569 15:11
+สายเวทมนตร์และพลังจิต (Spellcasters),
+Wizard,
+• Buff: ทำดาเมจเวทมนตร์เพิ่มขึ้น 5% แต่ลด Max HP ลง 2% 
+◦ (Scaling: เพิ่มดาเมจเวทมนตร์ 1.5% ต่อ 1 Class level)
+• Perk ประจําตัว:Scholar's Mind – การตรวจสอบไอเทมเวทมนตร์ โบราณวัตถุ หรือภาษาโบราณจะได้ Advantage
+Sorcerer,
+• Buff: เมื่อร่ายเวททำดาเมจ มีโอกาส 10% ที่จะเกิด "Echo Cast" (ร่ายซ้ำอีกครั้งฟรีโดยไม่เสีย spell slot แต่ดาเมจลดลงครึ่งหนึ่ง) 
+◦ (Scaling: เพิ่มโอกาสเกิด Echo Cast 1% และเพิ่มดาเมจเวททั่วไป 0.5% ต่อ 1 Class level)
+• Perk ประจําตัว:Mana Surge – เมื่อจบการต่อสู้ มีโอกาส 20% ที่จะฟื้นฟูช่องเวทมนตร์ (Spell Slot) ระดับต่ำสุดคืนมา 1 ช่องทันที
+Warlock,
+• Buff: ทำดาเมจใส่ศัตรูที่อยู่ตัวคนเดียว (ไม่มีศัตรูตัวอื่นในระยะ) แรงขึ้น 8% แต่ถ้าโดนโจมตีสวนกลับจะเจ็บขึ้น 3% 
+◦ (Scaling: เพิ่มดาเมจเป้าหมายเดี่ยว 1% และเพิ่มความเสียหายของ debuff ที่ร่าย 0.5 ต่อ 1 Class level)
+• Perk ประจําตัว:Patron's Eye – สามารถมองเห็นในความมืดสนิทได้ (Darkvision) และรับรู้ถึงสิ่งมีชีวิตประเภทกึ่งเทพ ปีศาจ หรือวิญญาณ ที่ซ่อนตัวอยู่ได้ง่ายขึ้น
+[15:12]วันเสาร์ที่ 13 มิถุนายน 2569 15:12
+---
+[15:12]วันเสาร์ที่ 13 มิถุนายน 2569 15:12
+สายสนับสนุนและผู้พิทักษ์ (Divine & Utility),
+Paladin,
+• Buff: ศัตรูที่โจมตีเพื่อนร่วมทีมใน 1 เทิร์นก่อนและหลังตัว Paladin จะถูกลดดาเมจลง 5% และ Paladin กันธาตุแสง/มืดเพิ่มขึ้น 5% 
+◦ (Scaling: เพิ่มระยะออร่าลดดาเมจ 1 ช่องเทิร์น และเพิ่มดาเมจศักดิ์สิทธิ์ 0.5% ต่อ 1 Class level)
+• Perk ประจําตัว:Unshakable Faith – มีภูมิคุ้มกันต่อสถานะ "หวาดกลัว" (Frightened) และช่วยให้เพื่อนรอบตัวทอยเต๋าแก้สถานะทางจิตใจได้ง่ายขึ้น/Advantage
+Cleric,
+• Buff: เพิ่มผลของการรักษา (Healing) และเกราะป้องกัน (Shield) ขึ้น 5% 
+◦ (Scaling: เพิ่มผลการรักษา 1% และการป้องกัน 1% ต่อ 1 Class level)
+• Perk ประจําตัว:Divine Grace – เมื่อรักษาเพื่อนร่วมทีมจาก Near death เพื่อนที่ฟื้นขึ้นมาจะได้รับ HP เพิ่มจากปกติ 20%
+Druid,
+• Buff: เมื่ออยู่ในร่างสัตว์ (Wild Shape) จะได้ Max HP โบนัสเพิ่มขึ้น 10% และเมื่ออยู่ในร่างมนุษย์ เวทมนตร์สายธรรมชาติ/รักษา จะแรงขึ้น 5% 
+◦ (Scaling: เพิ่ม Max HP ร่างสัตว์ 1.5% และเพิ่มพลังป้องกันธาตุ ดิน น้ำ ลม ไฟ 0.5% ต่อ 1 Class level)
+• Perk ประจําตัว:Beast Whisperer – สามารถสื่อสารและเข้าใจเจตนาของสัตว์ป่าทั่วไปได้ และสัตว์ป่าที่ไม่มีเจ้าของจะไม่โจมตีก่อน
+Bard,
+• Buff: เพื่อนร่วมทีมทุกคนที่อยู่ในระยะการได้ยินเสียง จะได้รับโบนัส +2 d20 สกิล (Skill Check) ทุกประเภท 
+◦ (Scaling: เพิ่มโบนัสเช็คสกิล 0.5% และเพิ่มดาเมจเวทสายป่วน/เสียง 1% ต่อ 1 Class level)
+• Perk ประจําตัว:Jack of All Trades – เมื่อต้องทอยเต๋าในสกิลที่ตัวเองไม่ได้เรียนมา (Untrained) จะได้รับ Bonus ให้ re-roll อีกครั้ง
+1 Class level = 2 Level
+1 Class = 10 Level Max
+
+
+Sub Class Update
+Subclass จะเริ่มใส่ได้เมื่อมี Class level ตั้งแต่ 5 ขึ้นไป โดยแต่ละ Class จะมีดังนี้ (ยาวแน่นอน) optional นะ subclass
+---------
+Barbarian (เริ่มติด Rage หลังจากเลือดเหลือ 80%)
+Berserker
+Passive
+
+เมื่อเพิ่มดาเมจอีก 10%
+ไม่ติดสถานะ Fear ระหว่าง Battle
+
+Battle Skill (1 ครั้ง/ต่อสู้)
+Blood Frenzy
+
+3 เทิร์น
+โจมตีเพิ่มอีก 1 ครั้ง
+Crit +10%
+
+Scaling
+
+ดาเมจ Rage +2% ต่อ Class Level
+
+---
+
+Beast
+Passive
+เลือกร่างสัตว์ 1 แบบ
+
+Bear → HP +15%
+Wolf → Move +2
+Tiger → Crit Damage +15%
+อื่นๆ
+
+Battle Skill
+Primal Shift
+
+เปลี่ยนเป็นร่างสัตว์สมบูรณ์ 3 เทิร์น
+ได้โบนัสของสัตว์ x2
+
+Scaling
+
+โบนัสร่างสัตว์ +1% ต่อ Class Level
+
+---
+
+Wild Magic
+Passive
+เมื่อ Rage
+
+เลือกบัฟ 1 อย่าง
+
+Lightning Aura
+Teleport (ได้ Bonus action เพิ่มหลังตีสำเร็จและได้ advantage ใน Bonus Action นี้)
+HP Regen
+Force Explosion
+(ใช้ roll ของการทำดาเมจ Normal attack ของตน)
+
+Battle Skill
+Chaos Surge
+เลือกบัฟ 3 อย่างพร้อมกัน อยู่ 5 turn/Cd 1 ครั้งต่อ Battle
+
+Scaling
+
+พลังของบัฟ +1% ต่อ Class Level
+
+__
+Fighter
+Champion
+Passive
+
+Crit 19-20
+Crit Damage +20%
+
+Battle Skill
+Heroic Strike
+
+1 per battle
+
+Hit อัตโนมัติ (เท่า Ac สัตรู)
+Crit 100%
+
+Scaling
+
+Crit Damage +3% ต่อ Class Level
+
+---
+
+Rune Knight
+Passive
+
+เลือกรูน 2 ชนิด
+
+Fire → Burn
+Stone → Stun
+Frost → Freeze
+Storm → Paralyze
+
+Battle Skill
+
+Mana Flowing
+
+3 turns 1 per battle
+
+HP +25%
+Reach +1 ช่อง
+Damage +15%
+
+Scaling
+
+Mana Flow Damage +2% ต่อ Class Level
+
+---
+
+Cavalier
+Passive
+
+ขี่สัตว์ได้ดี (advantage taming)
+ศัตรูที่โจมตีเพื่อนใกล้ตัว (1 ช่องเทิร์นก่อนและหลัง)
+
+  
+Damage -10%
+
+Battle Skill
+
+Knight's Challenge
+
+3 เทิร์น 1 per battle
+
+โล่มนุษย์ให้ตัวเอง
+AC +2
+
+Scaling
+
+Damage ลด +1% ต่อ Class Level
+
+---
+---
+
+
+Monk
+Kensei
+Passive
+
+เลือกอาวุธ 1 ชนิด
+
+Damage +10%
+Attack Roll +1
+
+Battle Skill
+
+Perfect Form
+
+3 เทิร์น per Battle
+
+Crit +15%
+Dodge +2
+
+Scaling
+
+Damage +2% ต่อ Class Level
+
+---
+
+Elements
+Passive
+
+เลือกธาตุ
+
+Fire
+Water
+Air
+Earth
+
+โจมตีมือเปล่าติดธาตุ
+
+Battle Skill
+
+Elemental Avatar
+
+3 เทิร์น per battle
+
+Damage ธาตุ +30%
+ได้ Resistance ธาตุตัวเอง
+
+Scaling
+
+Element Damage +2% ต่อ Class Level
+
+---
+
+Mercy
+Passive
+
+ใช้ Ki หรือ Charge ของตน
+
+Heal (# d6)
+Cure Debuff
+
+Battle Skill
+
+Merciful Salvation
+1 Per Battle
+Heal ทีมทั้งหมด
+ล้าง Debuff ทุกชนิด
+
+Scaling
+
+Heal +2% ต่อ Class Level
+
+---
+Rogue
+Assassin
+Passive
+
+โจมตีเป้าหมายที่ยังไม่เคลื่อนที่
+Crit 100%
+
+Battle Skill
+
+Death Mark
+
+3 เทิร์น 1 per battle
+
+Damage ต่อเป้าหมาย +30%
+Crit Damage +50%
+
+Scaling
+
+Crit Damage +3% ต่อ Class Level
+
+---
+
+Thief
+Passive
+
+Gold Drop +20%
+เปิดหีบไม่ติดกับดัก
+
+Battle Skill
+
+Grand Heist
+
+1 ครั้งต่อ Session
+
+ได้ Gold เพิ่ม
+หรือสุ่มไอเทมหายาก
+
+Scaling
+
+Gold Bonus +5% ต่อ Class Level
+
+---
+
+Soulknife
+Passive
+
+สร้าง Psychic Blade
+โจมตีทะลุเกราะ
+
+Battle Skill
+
+Mind Break
+Cd;3
+ทำ Psychic Damage (Spell Slots + D6)
+Stun 1 Turn
+
+Scaling
+
+Psychic Damage +3% ต่อ Class Level
+
+---
+Ranger
+Hunter
+Passive
+
+เลือก 1 Trait เพื่อทำดาเมจเพิ่ม 30% ต่อ Trait เหล่านั้น
+Battle Skill
+
+Hunter's Focus
+
+3 เทิร์น CD:5
+
++3 D20
+Damage +20%
+
+---
+
+Monster Slayer
+Passive
+
+Mark ศัตรู เพื่อ
+
+Damage +15% ใส่สัตรู
+Save DC +1 ให้ตนเอง
+
+Battle Skill
+
+Slayer's Verdict
+3 Turn 1 per battle
+ศัตรูที่เป็น Boss
+
+  
+รับ Damage +25% จากทุกคน
+
+---
+
+Fey Wanderer
+Passive
+
+Charm Resist
+Persuasion Advantage
+
+Battle Skill
+
+Fey Gate
+1 Per Battle/Session
+Teleport ทั้งทีม
+Heal (Spell Slots + d6)
+
+---
+Wizard
+Necromancy
+Passive
+
+ฆ่าศัตรู
+
+Summon Skeleton (25 Hp ติดโล่มนุษย์)
+
+Battle Skill
+
+Army of the Dead
+1 Per Battle
+อัญเชิญ Undead 3 ตัว (25 Hp ติดโล่มนุษย์)
+
+Scaling
+
+Summon HP +5% ต่อ Class Level
+
+---
+
+Spell Caster
+Passive
+
+Magic Damage +20%
+
+Battle Skill
+
+Ultimate Spell
+1 Per battle
+สุ่มเลือก 1 Spell ที่ติด cooldown อยู่ มาใช้อีกครั้งโดยไม่เสีย Cost และสำเร็จแน่นอน (ผล d20 เท่า Ac สัตรู)
+
+---
+
+Divination
+Passive
+
+วันละ 2 ครั้ง
+
+Reroll Dice
+
+Battle Skill
+
+Fate Twist
+
+1 per battle
+
+เปลี่ยนผลเต๋าเป็นค่าที่ต้องการ
+
+---
+Sorcerer
+Shadow Magic
+Passive
+
+Darkvision
+Necrotic Resistance
+
+Battle Skill
+
+Dark One
+
+3 เทิร์น 1 Per Battle
+
+Evasion +3
+Spell Damage +20%
+
+---
+
+Wild Magic
+Passive
+
+10% Armor เมื่ออยู่ในธรรมชาติ
+
+Battle Skill
+
+Chaos Storm
+
+เลือกเวทย์ไม่ซ้ำกันมา 3 เวทย์และปล่อยพร้อมกันในเทิร์นเดียว
+
+---
+
+Divine Soul
+Passive
+
+ใช้เวท
+
+Heal +10%
+Holy Damage +10%
+
+Battle Skill
+
+Divine Intervention
+
+Heal (Spell Slots + d6)
+Revive 1 คน (ใน Battle เท่านั้น)
+
+---
+Warlock
+The Hexblade
+Passive
+
+Curse ศัตรู
+
+Damage +15%
+Heal 10% ของ dmg เมื่อ hit
+
+Battle Skill
+
+Soul Reaper
+
+3 เทิร์น CD:5
+
+Crit +20%
+Heal 30% ของ dmg เมื่อ hit
+
+---
+
+The Archfey
+Passive
+
+Charm Resist
++1 Extra Action
+
+Battle Skill
+
+Fey Carnival
+1 Per battle
+ศัตรูทั้งหมด
+
+Charm
+Blind
+Fear
+
+สุ่ม 1 สถานะ
+
+---
+
+The Undead
+Passive
+
+Necrotic Resist
+Fear Aura (Roll d20)
+
+Battle Skill
+
+Dread Form
+
+3 เทิร์น
+
+HP +20%
+ติด Fear ให้สัตรูทุกครั้งที่โจมตีโดน
+
+---
+Paladin
+Oath of the Ancients
+Passive
+
+ลด Damage สัตรู 10%
+เพิ่มShieldให้ team 20
+
+Battle Skill
+
+Ancient Sanctuary
+
+3 เทิร์น per battle
+
+ทีมได้รับ Shield 20
+Heal ทั้งทีม (Spell Slots + d6)
+
+---
+
+Oath of Devotion
+Passive
+
+Holy Damage +10%
+Fear Immune (ปกคิ)
+
+Battle Skill
+
+Sacred Weapon
+
+3 เทิร์น per Battle
+
++3 D20
+Holy Damage +25%
+
+---
+
+Oath of Redemption
+Passive
+
+รับ Damage -10%
+
+Battle Skill
+
+Redeemer's Sacrifice
+1 turn per battle
+รับดาเมจแทนเพื่อนทั้งหมด
+Heal ตัวเอง 50% จาก damage ที่ได้รับ
+
+--- 
+Cleric
+Life Domain
+Passive
+
+Heal +15%
+
+Battle Skill
+
+Miracle
+1 per battle
+Heal ทีม 50% ของ hp ปัจจุบัน
+ล้าง Debuff
+
+---
+
+War Domain
+Passive
+
+Weapon Damage +10%
+
+Battle Skill
+
+Holy Crusade
+
+3 เทิร์น per battle
+
+Damage +25% ทั้งทีม
+Extra Attack ให้ 1 คนที่ไม่ใช้ตนเอง
+
+---
+
+Arcana Domain
+Passive
+
+Spell Damage +10%
+Arcana Check Advantage
+
+Battle Skill
+
+Arcane Revelation
+
+3 เทิร์น per battle
+
+Spell Cost 0
+Damage +20%
+
+---
+Druid
+Circle of the Land
+Passive
+
+ฟื้น Spell Slot ทุก slots 1 ช่อง หลัง short rest/Long rest
+
+Battle Skill
+
+Nature's Blessing
+
+3 เทิร์น 1 per battle ให้ตนเอง
+
+Spell Damage +20%
+Heal +20%
+
+---
+
+Circle of the Moon
+Passive
+
+Wild Shape HP +20%
+
+Battle Skill
+
+Alpha Beast
+
+3 เทิร์น 1 per battle
+
+Damage +25%
+Crit +15%
+
+---
+
+Circle of the Sea
+Passive
+
+Water Resistance
+อยู่ในน้ำได้ advantage
+
+Battle Skill
+
+Maelstrom
+
+3 เทิร์น 1 per battle
+
+ศัตรูติด ลด dex 3
+Water Damage ต่อเนื่อง 1d6
+
+---
+Bard
+College of Whispers
+Passive
+
+Psychic Damage +10%
+Fear Duration +1 Turn
+
+Battle Skill
+
+Nightmare Symphony
+1 per battle
+ศัตรูทั้งหมดติด Fear
+ลด 2 d20 สัตรูเมื่อติด fear
+
+---
+
+College of Lore
+Passive
+
+Skill Check +2 d20
+Advantage int check
+
+Battle Skill
+
+Legendary Knowledge
+
+3 เทิร์น 1 per battle
+
+ทีมได้ Advantage ทุก Skill Check และ Saving Throw
+
+---
+
+College of Swords
+Passive
+
+Weapon Damage +10%
+AC +1
+
+Battle Skill
+
+Blade Dance
+
+3 เทิร์น 1 per battle
++2 Evasion
++2 Extra Action
+
+Passive ของ Class Gunslinger ที่ roll จะไม่น้อยกว่า Ac ของ Target จะถูกปรับเป็น "ทุกๆการโจมตีด้วย Range weapon ผลของ d20 จะเท่ากับ Ac สัตรูไม่สนการบวกลบใดๆ" และ Passive ใน role play จะทำให้ "Roll d20 จะไม่น้อยกว่า 10" บวกเพิ่มผลของ roll ได้
+
+และ Gunslinger charecters ทุกตัวจะต้องมี Class นี้ไม่งั้นไม่นับ 
+
+Special Status Edition
+
+Fear ความกลัวนั้นเป็นสถานะที่เกิดขึ้นได้จาก intimidation skill or passive ที่เมื่อติดแล้วจัติดเป็นเทิร์นและไม่สามารถออกActionกับคนที่ติดFearให้ตนได้ จนกว่าFear จะหายไป
+
+Courage ความกล้าคือขั้วตรงข้ามกับFear มันนั้นจะสามรถมีได้เมื่อคนที่ติดFearนั้นสามารถก้าวข้าวความกลัวไปได้ (ไม่ใช่ลบสถานะแต่ต้องResist ด้วยd20) Scale ของ Courage จะขึ้นอยู่กับ d20 ที่ได้เมื่อ Resist สำเร็จ จะสำเร็จได้เมื่อ d20 ได้ 16ขึ้นไป
+
+Courage I 16-17
+ไม่รับสถานะผิดปกติทางจิตรใจใดๆ
+
+Courage II 18-19
+เหมือน Courage I แต่เพิ'ม 2 d20
+
+Courage III 20
+ทำการMaximum roll ทุก roll ที่อยู่มนขนะที่สถานะนี้ยังอยู่ 
+
