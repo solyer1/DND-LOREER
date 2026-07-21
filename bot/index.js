@@ -130,7 +130,7 @@ CLASSIFY AS NOT LORE (isLore: false) if the message is:
 
 RULES FOR OUTPUT:
 1. "title" must be a concise, descriptive 3-7 word title that captures the core subject. Do NOT use generic titles like "A Story" or "Some Lore".
-2. "mainCategory" MUST be exactly ONE of: Story, Character, Location, History, Item, Faction, Magic, Terminology, Event, Rule
+2. "mainCategory" MUST be exactly ONE of: Story, Character, Location, History, Item, Faction, Magic, Terminology, Event, Rule, CombatMechanic
 3. "subTags" should be 1-3 specific, relevant tags (e.g., "Sword Coast", "Necromancy", "Dragon"). Do NOT repeat the main category.
 4. Your confidence in the classification (0.0 to 1.0). Only classify as lore if confidence > 0.6.
 
@@ -293,6 +293,102 @@ async function isMessageLoreWithTimeout(content, timeoutMs = 20000) {
     console.error("isMessageLore timeout or error:", error.message || error);
     return { isLore: false, tags: "" };
   }
+}
+
+// ═══════════════════════════════════════════
+// AI: Auto-Coder for Mechanics Page
+// ═══════════════════════════════════════════
+
+async function updateMechanicsPage(newRuleContent) {
+  const pagePath = path.join(__dirname, "../web/src/components/MechanicsPage.tsx");
+  const backupPath = path.join(__dirname, "../web/src/components/MechanicsPage.backup.tsx");
+  
+  if (!fs.existsSync(pagePath)) {
+    console.error("MechanicsPage.tsx not found at", pagePath);
+    return false;
+  }
+
+  const currentCode = fs.readFileSync(pagePath, "utf-8");
+
+  const prompt = `You are an expert React and TypeScript developer, and a D&D Dungeon Master.
+Your task is to update the source code of the MechanicsPage.tsx React component to seamlessly integrate a new combat rule provided by the user.
+
+CURRENT SOURCE CODE:
+\`\`\`tsx
+${currentCode}
+\`\`\`
+
+NEW RULE TO INTEGRATE:
+"""
+${newRuleContent}
+"""
+
+INSTRUCTIONS:
+1. Carefully read the new rule. Determine which section of the page it belongs to (e.g., Calculation, Resistances, Status Conditions, Classes, or general).
+2. Modify the React code to include this new rule. Use the existing UI components (like Accordion, ConditionCard, ClassCard, SubclassCard, MecTable) to make it look beautiful and fit the existing design.
+3. If it's a new status condition, add a new <ConditionCard />. If it's a general rule, add it to the appropriate section using standard tailwind/styled HTML elements matching the current aesthetic.
+4. Do NOT remove any existing features or rules unless the new rule explicitly replaces them.
+5. Return the COMPLETE, fully functioning, updated TSX code. 
+6. ONLY return the code inside a \`\`\`tsx block. Do not include any other conversational text.
+
+Output the new TSX code:`;
+
+  console.log("🤖 Sending MechanicsPage.tsx to AI for auto-updating...");
+
+  return await withRetry(
+    async () => {
+      const aiProvider = (process.env.AI_PROVIDER || "gemini").toLowerCase();
+      let text = "";
+
+      if (aiProvider === "custom") {
+        const response = await fetch(process.env.CUSTOM_AI_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.CUSTOM_AI_KEY || ""}`,
+          },
+          body: JSON.stringify({
+            model: process.env.CUSTOM_AI_MODEL || "local-model",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.1,
+            stream: false,
+          }),
+        });
+
+        if (!response.ok) throw new Error(`Custom AI error: ${response.status}`);
+        const rawText = await response.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (e) {
+          const firstData = rawText.split("\\n").filter((l) => l.includes("data:"))[0].replace("data: ", "");
+          data = JSON.parse(firstData);
+        }
+        text = data.choices[0]?.message?.content?.trim() || "";
+      } else {
+        const response = await ai.models.generateContent({
+          model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+          contents: prompt,
+        });
+        text = response.text().trim();
+      }
+
+      // Extract code block
+      const codeMatch = text.match(/\`\`\`(?:tsx|typescript|javascript)?([\s\S]*?)\`\`\`/);
+      const finalCode = codeMatch ? codeMatch[1].trim() : text.replace(/\`\`\`/g, "").trim();
+
+      if (!finalCode.includes("export default function MechanicsPage")) {
+         throw new Error("AI generated invalid React code (missing default export)");
+      }
+
+      // Create backup and save
+      fs.writeFileSync(backupPath, currentCode);
+      fs.writeFileSync(pagePath, finalCode);
+      console.log("✅ MechanicsPage.tsx successfully updated by AI!");
+      return true;
+    },
+    { maxRetries: 1, baseDelayMs: 2000, label: "auto-update MechanicsPage" }
+  );
 }
 
 // ═══════════════════════════════════════════
@@ -487,6 +583,11 @@ async function processChannelForLore(targetChannel, limitDate, progressCallback)
             }
             totalSaved++;
             await oldMsg.react("📖").catch(() => {});
+            
+            if (result.tags.includes("CombatMechanic")) {
+              await oldMsg.react("⚙️").catch(() => {});
+              await updateMechanicsPage(cleanedContent).catch(err => console.error("Auto-coder failed:", err));
+            }
           }
         } catch (err) {
           console.error(`Error processing message ${oldMsg.id}:`, err.message || err);
@@ -982,6 +1083,11 @@ client.on(Events.MessageCreate, async (message) => {
         });
       }
       await message.react("📖").catch(() => {});
+      
+      if (result.tags.includes("CombatMechanic")) {
+        await message.react("⚙️").catch(() => {});
+        await updateMechanicsPage(cleanedContent).catch(err => console.error("Auto-coder failed:", err));
+      }
     } catch (err) {
       console.error("Error saving lore:", err.message || err);
     }
