@@ -30,41 +30,46 @@ export default function DeduplicateModal({
 
   // Find duplicates
   const duplicateGroups = useMemo(() => {
-    if (!entries) return [];
-    
-    const groups: DuplicateGroup[] = [];
-    const processedIds = new Set<string>();
+    try {
+      if (!entries || !Array.isArray(entries)) return [];
+      
+      const groups: DuplicateGroup[] = [];
+      const processedIds = new Set<string>();
 
-    // Sort by length descending (keep the longest as original)
-    const sortedEntries = [...entries].sort((a, b) => (b.content?.length || 0) - (a.content?.length || 0));
+      // Sort by length descending (keep the longest as original)
+      const sortedEntries = [...entries].sort((a, b) => (b?.content?.length || 0) - (a?.content?.length || 0));
 
-    for (let i = 0; i < sortedEntries.length; i++) {
-      const parent = sortedEntries[i];
-      if (processedIds.has(parent.id)) continue;
+      for (let i = 0; i < sortedEntries.length; i++) {
+        const parent = sortedEntries[i];
+        if (!parent || !parent.id || processedIds.has(parent.id)) continue;
 
-      const currentGroup: DuplicateGroup = { original: parent, duplicates: [] };
+        const currentGroup: DuplicateGroup = { original: parent, duplicates: [] };
 
-      for (let j = i + 1; j < sortedEntries.length; j++) {
-        const child = sortedEntries[j];
-        if (processedIds.has(child.id)) continue;
+        for (let j = i + 1; j < sortedEntries.length; j++) {
+          const child = sortedEntries[j];
+          if (!child || !child.id || processedIds.has(child.id)) continue;
 
-        const pContent = parent.content?.trim().toLowerCase() || "";
-        const cContent = child.content?.trim().toLowerCase() || "";
+          const pContent = (parent.content || "").toString().trim().toLowerCase();
+          const cContent = (child.content || "").toString().trim().toLowerCase();
 
-        if (cContent.length < 10) continue;
+          if (cContent.length < 10) continue;
 
-        // If child is a substring of parent (or exact match)
-        if (pContent.includes(cContent)) {
-          currentGroup.duplicates.push(child);
-          processedIds.add(child.id);
+          // If child is a substring of parent (or exact match)
+          if (pContent.includes(cContent)) {
+            currentGroup.duplicates.push(child);
+            processedIds.add(child.id);
+          }
+        }
+
+        if (currentGroup.duplicates.length > 0) {
+          groups.push(currentGroup);
         }
       }
-
-      if (currentGroup.duplicates.length > 0) {
-        groups.push(currentGroup);
-      }
+      return groups;
+    } catch (err: any) {
+      alert("Crash in DeduplicateModal: " + err.message);
+      return [];
     }
-    return groups;
   }, [entries]);
 
   // Pre-select duplicates for deletion
