@@ -45,12 +45,13 @@ export default React.memo(function LoreCard({
   const catConfig = getCategoryConfig(entry.tags);
   const bookmarked = isBookmarked(entry.id);
 
-  // View count from localStorage
-  const viewCount = useMemo(() => {
+  const [viewCount, setViewCount] = useState(0);
+
+  React.useEffect(() => {
     try {
       const counts = JSON.parse(localStorage.getItem("viewCounts") || "{}");
-      return counts[entry.id] || 0;
-    } catch { return 0; }
+      setViewCount(counts[entry.id] || 0);
+    } catch {}
   }, [entry.id]);
 
   const handleDelete = async () => {
@@ -320,7 +321,7 @@ export default React.memo(function LoreCard({
               👁️ {viewCount}
             </span>
           )}
-          <time className="text-[10px] font-mono" style={{ color: "var(--text-tertiary)" }}>
+          <time suppressHydrationWarning className="text-[10px] font-mono" style={{ color: "var(--text-tertiary)" }}>
             {new Date(entry.createdAt).toLocaleDateString("en-US", {
               year: "numeric", month: "short", day: "numeric",
             })}
