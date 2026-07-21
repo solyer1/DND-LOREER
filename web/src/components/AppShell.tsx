@@ -257,7 +257,10 @@ export default function AppShell({ children, entries = [] }: AppShellProps) {
               <span>{theme === "dark" ? "Dark Mode" : "Light Mode"}</span>
             </button>
             <button
-              onClick={() => setIsDedupeOpen(true)}
+              onClick={() => {
+                alert("Sidebar button clicked!");
+                setIsDedupeOpen(true);
+              }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
               style={{ color: "var(--text-secondary)" }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--sidebar-hover)"; }}
@@ -302,7 +305,10 @@ export default function AppShell({ children, entries = [] }: AppShellProps) {
 
           {/* Desktop Theme Toggle */}
           <button
-            onClick={() => setIsDedupeOpen(true)}
+            onClick={() => {
+              alert("Topbar button clicked! Opening modal...");
+              setIsDedupeOpen(true);
+            }}
             className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all"
             style={{ color: "var(--text-tertiary)", border: "1px solid var(--border-subtle)" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-tertiary)"; }}
