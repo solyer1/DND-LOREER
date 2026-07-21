@@ -21,6 +21,13 @@ export default function DeduplicateModal({
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // DEBUG ALERT
+  useEffect(() => {
+    if (isOpen) {
+      alert(`Modal opened! Entries count: ${entries?.length}`);
+    }
+  }, [isOpen, entries]);
+
   // Find duplicates
   const duplicateGroups = useMemo(() => {
     if (!entries) return [];
