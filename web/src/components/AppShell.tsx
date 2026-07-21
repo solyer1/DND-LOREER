@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
 import { useBookmarks } from "./BookmarkProvider";
+import DeduplicateModal from "./DeduplicateModal";
 import { CATEGORIES, CATEGORY_CONFIG, getCategoryForEntry, type Category } from "./CategoryIcon";
 
 interface AppShellProps {
@@ -15,6 +16,7 @@ interface AppShellProps {
 export default function AppShell({ children, entries = [] }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [isDedupeOpen, setIsDedupeOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { bookmarks } = useBookmarks();
   const pathname = usePathname();
@@ -246,13 +248,23 @@ export default function AppShell({ children, entries = [] }: AppShellProps) {
           <div className="p-4 border-t" style={{ borderColor: "var(--border-subtle)" }}>
             <button
               onClick={toggleTheme}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-2"
               style={{ color: "var(--text-secondary)" }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--sidebar-hover)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               <span className="text-base">{theme === "dark" ? "🌙" : "☀️"}</span>
               <span>{theme === "dark" ? "Dark Mode" : "Light Mode"}</span>
+            </button>
+            <button
+              onClick={() => setIsDedupeOpen(true)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={{ color: "var(--text-secondary)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--sidebar-hover)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            >
+              <span className="text-base">✨</span>
+              <span>Find Duplicates</span>
             </button>
           </div>
         </div>
@@ -289,6 +301,16 @@ export default function AppShell({ children, entries = [] }: AppShellProps) {
           <div className="flex-1" />
 
           {/* Desktop Theme Toggle */}
+          <button
+            onClick={() => setIsDedupeOpen(true)}
+            className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all"
+            style={{ color: "var(--text-tertiary)", border: "1px solid var(--border-subtle)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-tertiary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            title="Find Duplicates"
+          >
+            ✨ Duplicates
+          </button>
           <button
             onClick={toggleTheme}
             className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all"

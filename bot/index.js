@@ -4,6 +4,7 @@ const { PrismaClient } = require("@prisma/client");
 const { GoogleGenAI } = require("@google/genai");
 const fs = require("fs");
 const path = require("path");
+const { exec } = require("child_process");
 
 const { PrismaLibSql } = require("@prisma/adapter-libsql");
 
@@ -385,6 +386,17 @@ Output the new TSX code:`;
       fs.writeFileSync(backupPath, currentCode);
       fs.writeFileSync(pagePath, finalCode);
       console.log("✅ MechanicsPage.tsx successfully updated by AI!");
+      
+      // Auto-push to Git so Vercel can deploy
+      const projectRoot = path.join(__dirname, "..");
+      exec('git add . && git commit -m "bot: auto-updated mechanics page" && git push', { cwd: projectRoot }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`❌ Git auto-push failed: ${error.message}`);
+          return;
+        }
+        console.log(`✅ Code successfully pushed to GitHub! Vercel is now deploying.`);
+      });
+
       return true;
     },
     { maxRetries: 1, baseDelayMs: 2000, label: "auto-update MechanicsPage" }
