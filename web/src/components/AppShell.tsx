@@ -333,6 +333,8 @@ export default function AppShell({ children, entries = [] }: AppShellProps) {
           {children}
         </main>
       </div>
+
+      <DeduplicateModal isOpen={isDedupeOpen} onClose={() => setIsDedupeOpen(false)} entries={entries} />
     </div>
   );
 }
