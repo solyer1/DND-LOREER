@@ -161,6 +161,23 @@ export default function AppShell({ children, entries = [] }: AppShellProps) {
               )}
             </Link>
 
+            {/* Ask the Keeper (AI Chat) */}
+            <Link
+              href="/chat"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                pathname === "/chat" ? "shadow-sm" : ""
+              }`}
+              style={{
+                background: pathname === "/chat" ? "var(--sidebar-active)" : "transparent",
+                color: pathname === "/chat" ? "var(--text-accent)" : "var(--text-secondary)",
+                border: pathname === "/chat" ? "1px solid var(--border-accent)" : "1px solid transparent",
+              }}
+            >
+              <span className="text-base">🧙‍♂️</span>
+              <span>Ask the Keeper</span>
+            </Link>
+
             {/* Divider */}
             <div className="py-3">
               <div className="h-px" style={{ background: "var(--border-subtle)" }} />

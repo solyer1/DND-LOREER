@@ -24,6 +24,17 @@ export default function WikiDashboard({ initialEntries }: { initialEntries: any[
   // Check for bookmarks view from URL
   const isBookmarksView = searchParams.get("view") === "bookmarks";
 
+  // Check for specific lore entry from URL (e.g., from AI chat links)
+  useEffect(() => {
+    const loreId = searchParams.get("lore");
+    if (loreId) {
+      const entry = initialEntries.find((e) => e.id === loreId);
+      if (entry) {
+        setSelectedEntry(entry);
+      }
+    }
+  }, [searchParams, initialEntries]);
+
   const handleSelectEntry = useCallback((entry: any) => {
     setSelectedEntry(entry);
     // Increment view count
