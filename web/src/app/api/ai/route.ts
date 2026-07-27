@@ -55,16 +55,24 @@ export async function POST(request: Request) {
       }
     }
 
-    const systemPrompt = `You are the Keeper of Lore, an AI assistant for a D&D campaign wiki called "King's Sanctuary".
+    const persona = settings.persona || "lore_assistant";
 
-Your roles are:
+    const baseSystemPrompt = `You are the Keeper of Lore, an AI assistant for a D&D campaign wiki called "King's Sanctuary".\n\n`;
+
+    let personaPrompt = "";
+    if (persona === "character_builder") {
+      personaPrompt = `Your role is a Helpful Character Kits Builder. You will help the user balance and brainstorm unique mechanics, skills, classes, and abilities tailored to the lore and rules of King's Sanctuary.`;
+    } else if (persona === "lore_maker") {
+      personaPrompt = `Your role is a Helpful Lore Maker. You will brainstorm and help the user create interesting lore ideas, locations, histories, and stories that fit within the world of King's Sanctuary.`;
+    } else {
+      personaPrompt = `Your roles are:
 1. A Lore Guide & Assistant: Answer the user's questions based on the lore provided below. If the answer is not in the lore, you may say you don't know or extrapolate reasonably based on D&D 5e knowledge, but clearly state when you are guessing outside the provided wiki lore.
-2. A Skillset & Character Creation Assistant: Help players brainstorm, design, and balance new characters, classes, abilities, and synergistic builds tailored to the mechanics and lore of King's Sanctuary.
-3. Source Citation: Whenever you draw upon the provided lore to answer a question, you must explicitly cite your sources using clickable markdown links. The format must be exactly \`[Lore Title](/?lore=ID)\` where ID is the provided database ID (e.g., "Sources: [The Fall of Sodom](/?lore=123)").
+2. A Skillset & Character Creation Assistant: Help players brainstorm, design, and balance new characters, classes, abilities, and synergistic builds tailored to the mechanics and lore of King's Sanctuary.`;
+    }
 
-Keep your answers engaging, slightly in-character as a wise archivist, but readable and well-formatted using markdown.
+    const citationInstruction = `Source Citation: Whenever you draw upon the provided lore to answer a question, you must explicitly cite your sources using clickable markdown links. The format must be exactly \`[Lore Title](/?lore=ID)\` where ID is the provided database ID (e.g., "Sources: [The Fall of Sodom](/?lore=123)").`;
 
-${loreContext}`;
+    const systemPrompt = `${baseSystemPrompt}${personaPrompt}\n\n${citationInstruction}\n\nKeep your answers engaging, slightly in-character as a wise archivist, but readable and well-formatted using markdown.\n\n${loreContext}`;
 
     let responseText = "";
 

@@ -35,6 +35,7 @@ export default function ChatPageClient() {
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("");
   const [contextLimit, setContextLimit] = useState("50");
+  const [persona, setPersona] = useState("lore_assistant");
   
   // Model Fetching
   const [availableModels, setAvailableModels] = useState<string[]>([]);
@@ -48,11 +49,13 @@ export default function ChatPageClient() {
     const savedKey = localStorage.getItem("ai_apiKey");
     const savedModel = localStorage.getItem("ai_model");
     const savedLimit = localStorage.getItem("ai_contextLimit");
+    const savedPersona = localStorage.getItem("ai_persona");
 
     if (savedEndpoint) setEndpoint(savedEndpoint);
     if (savedKey) setApiKey(savedKey);
     if (savedModel) setModel(savedModel);
     if (savedLimit) setContextLimit(savedLimit);
+    if (savedPersona) setPersona(savedPersona);
 
     // Load Sessions
     const savedSessions = localStorage.getItem("ai_chat_sessions");
@@ -219,6 +222,7 @@ export default function ChatPageClient() {
             apiKey,
             model,
             contextLimit: parseInt(contextLimit) || 50,
+            persona,
           },
         }),
       });
@@ -503,6 +507,21 @@ export default function ChatPageClient() {
 
               {/* Input Area */}
               <div className="p-3 md:p-4 border-t" style={{ background: "var(--bg-elevated)", borderColor: "var(--border-subtle)" }}>
+                <div className="max-w-4xl mx-auto mb-2">
+                  <select 
+                    value={persona} 
+                    onChange={(e) => {
+                      setPersona(e.target.value);
+                      saveSettings("ai_persona", e.target.value);
+                    }}
+                    className="bg-transparent text-xs font-medium focus:outline-none cursor-pointer rounded px-2 py-1 transition-colors"
+                    style={{ color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}
+                  >
+                    <option value="lore_assistant">Role: Lore Assistant</option>
+                    <option value="character_builder">Role: Character Kits Builder</option>
+                    <option value="lore_maker">Role: Lore Maker</option>
+                  </select>
+                </div>
                 <div className="relative flex max-w-4xl mx-auto">
                   <textarea
                     value={input}
